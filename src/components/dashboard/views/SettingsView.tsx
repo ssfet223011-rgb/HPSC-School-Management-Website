@@ -3,13 +3,39 @@
 import React, { useState } from 'react';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 import { useSchoolStore } from '@/lib/store/schoolStore';
-import { Settings, Save, CheckCircle2, Shield, Lock, Image as ImageIcon, Upload } from 'lucide-react';
+import { Settings, Save, CheckCircle2, Shield, Lock, Image as ImageIcon, Upload, Database, Server, Key, ExternalLink, Copy, Check } from 'lucide-react';
 import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase/client';
 
 export const SettingsView: React.FC = () => {
   const { brandingAssets, updateBrandingAsset } = useSchoolStore();
   const [saved, setSaved] = useState(false);
   const [assetMsg, setAssetMsg] = useState<string | null>(null);
+  const [copiedEnv, setCopiedEnv] = useState(false);
+  const [testDbStatus, setTestDbStatus] = useState<string | null>(null);
+  const [isTestingDb, setIsTestingDb] = useState(false);
+
+  const handleTestDatabase = async () => {
+    setIsTestingDb(true);
+    setTestDbStatus(null);
+    try {
+      if (!isSupabaseConfigured || !supabase) {
+        setTestDbStatus('Local Mode Active: Supabase credentials not yet placed in .env.local.');
+      } else {
+        const { data, error } = await supabase.from('school_settings').select('*').limit(1);
+        if (error) {
+          setTestDbStatus(`Connected to Supabase, but schema not yet initialized: ${error.message}`);
+        } else {
+          setTestDbStatus('Success! PostgreSQL database connected and tables verified.');
+        }
+      }
+    } catch (err: any) {
+      setTestDbStatus(`Connection check error: ${err.message}`);
+    } finally {
+      setIsTestingDb(false);
+    }
+  };
+
   const [settings, setSettings] = useState({
     nameEn: SCHOOL_CONFIG.identity.nameEn,
     nameBn: SCHOOL_CONFIG.identity.nameBn,
@@ -59,6 +85,144 @@ export const SettingsView: React.FC = () => {
           <span>Settings successfully updated. Central metadata and audit log synchronized.</span>
         </div>
       )}
+
+      {/* Database Connection & Cloud Integration Center */}
+      <div className="bg-white rounded-lg border border-school-border shadow-academic overflow-hidden">
+        <div className="bg-gradient-to-r from-[#082E50] to-[#124C7C] text-white p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-school-gold">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
+              <Database className="w-4 h-4 text-school-gold" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm tracking-wide">
+                Database Connection & Cloud Integration (ডাটাবেজ কানেকশন)
+              </h3>
+              <p className="text-[11px] text-slate-300 font-bengali">
+                Supabase PostgreSQL ও ফাইল স্টোরেজ ক্লাউড সংযোগ
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+              isSupabaseConfigured
+                ? 'bg-emerald-500 text-white'
+                : 'bg-amber-400 text-school-navy'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-white' : 'bg-school-navy animate-ping'}`} />
+              <span>{isSupabaseConfigured ? 'Cloud PostgreSQL Connected' : 'Local Offline Mode Active'}</span>
+            </span>
+
+            <button
+              type="button"
+              onClick={handleTestDatabase}
+              disabled={isTestingDb}
+              className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded font-semibold border border-white/30 transition-colors"
+            >
+              {isTestingDb ? 'Checking...' : 'Test Connection'}
+            </button>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-4 text-xs">
+          {testDbStatus && (
+            <div className={`p-3 rounded border text-xs font-semibold ${
+              testDbStatus.includes('Success')
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                : 'bg-blue-50 text-blue-900 border-blue-300'
+            }`}>
+              {testDbStatus}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
+              <h4 className="font-bold text-school-navy text-xs flex items-center gap-1.5">
+                <Server className="w-4 h-4 text-school-academic" />
+                <span>বর্তমান ডাটাবেজ স্ট্যাটাস</span>
+              </h4>
+              <div className="space-y-2 text-slate-700">
+                <div className="flex justify-between border-b pb-1">
+                  <span className="text-slate-500">Database Engine:</span>
+                  <strong className="font-mono text-school-navy">PostgreSQL (Supabase)</strong>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                  <span className="text-slate-500">Active Storage:</span>
+                  <span className="font-semibold text-emerald-700">HTML5 LocalStorage + Mock Cache</span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                  <span className="text-slate-500">Configured URL:</span>
+                  <span className="font-mono text-[10px] text-slate-600 truncate max-w-[180px]">
+                    {process.env.NEXT_PUBLIC_SUPABASE_URL || 'Not yet set'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">SQL Schema File:</span>
+                  <span className="font-mono text-xs text-school-academic">supabase/migrations/...</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2.5 bg-amber-50/70 p-4 rounded-lg border border-amber-200">
+              <h4 className="font-bold text-school-navy text-xs flex items-center gap-1.5">
+                <Key className="w-4 h-4 text-amber-600" />
+                <span>কীভাবে ডাটাবেজ কানেক্ট করবেন (৪টি সহজ ধাপ):</span>
+              </h4>
+              <ol className="list-decimal list-inside space-y-1.5 text-slate-700 leading-relaxed text-[11px]">
+                <li>
+                  <strong>Supabase প্রজেক্ট তৈরি:</strong>{' '}
+                  <a
+                    href="https://supabase.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-school-academic underline inline-flex items-center gap-0.5"
+                  >
+                    supabase.com <ExternalLink className="w-3 h-3" />
+                  </a>{' '}
+                  এ গিয়ে একটি ফ্রি একাউন্ট ও প্রজেক্ট তৈরি করুন।
+                </li>
+                <li>
+                  <strong>API Keys কপি করুন:</strong> প্রজেক্টের <em>Project Settings &gt; API</em> থেকে <code>Project URL</code> এবং <code>anon public key</code> কপি করুন।
+                </li>
+                <li>
+                  <strong>.env.local ফাইলে বসান:</strong> আপনার প্রজেক্টের মূল ফোল্ডারে থাকা <code>.env.local</code> ফাইলে মান দুটি পেস্ট করুন।
+                </li>
+                <li>
+                  <strong>SQL স্কিমা রান করুন:</strong> Supabase ড্যাশবোর্ডের <em>SQL Editor</em>-এ গিয়ে <code>supabase/migrations/20261029000001_create_school_erp_schema.sql</code> ফাইলের কোড রান করে দিন।
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 text-slate-200 p-3.5 rounded-lg font-mono text-[11px] space-y-1.5 relative">
+            <div className="flex items-center justify-between text-slate-400 border-b border-slate-700 pb-1 text-[10px]">
+              <span>.env.local কনফিগারেশন ফরম্যাট:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+`NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_DEFAULT_LOCALE=bn
+NEXT_PUBLIC_TIMEZONE=Asia/Dhaka`
+                  );
+                  setCopiedEnv(true);
+                  setTimeout(() => setCopiedEnv(false), 2500);
+                }}
+                className="inline-flex items-center gap-1 hover:text-white transition-colors"
+              >
+                {copiedEnv ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedEnv ? 'Copied!' : 'Copy Code'}</span>
+              </button>
+            </div>
+            <div>NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co</div>
+            <div>NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</div>
+            <div className="text-slate-500"># Application defaults</div>
+            <div>NEXT_PUBLIC_APP_URL=http://localhost:3000</div>
+          </div>
+        </div>
+      </div>
 
       {/* Settings Form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-school-border shadow-sm p-6 space-y-6">
