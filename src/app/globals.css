@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 40 33% 98%;
+  --foreground: 210 50% 19%;
+  --border: 41 42% 85%;
+  --input: 41 42% 85%;
+  --ring: 208 82% 17%;
+  
+  --school-navy: #082E50;
+  --school-academic: #124C7C;
+  --school-royal: #1C5A91;
+  --school-gold: #D6A545;
+  --school-light-gold: #F1D79B;
+  --school-cream: #FBF8F0;
+  --school-body: #183149;
+  --school-muted: #64748B;
+  --school-border: #E8DFC9;
+}
+
+body {
+  color: var(--school-body);
+  background-color: #F8F9FA;
+  font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-serif-heading {
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  letter-spacing: 0.02em;
+}
+
+.font-bengali {
+  font-family: 'Hind Siliguri', 'Noto Serif Bengali', 'SolaimanLipi', sans-serif;
+}
+
+.font-bengali-serif {
+  font-family: 'Noto Serif Bengali', 'Hind Siliguri', serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* ==========================================================================
+   PRINT STYLES FOR OFFICIAL SCHOOL DOCUMENTS
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 12mm 10mm;
+  }
+
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  .no-print,
+  nav,
+  header,
+  footer,
+  aside,
+  .print-hide,
+  button,
+  .btn-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-page-break {
+    page-break-before: always;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+
+  .printable-document {
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    border: 1px solid #1e293b !important;
+    padding: 6px 8px !important;
+    color: #000 !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    font-weight: bold !important;
+  }
+}
