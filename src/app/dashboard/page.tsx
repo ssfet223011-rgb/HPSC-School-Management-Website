@@ -17,6 +17,8 @@ import { LibraryManageView } from '@/components/dashboard/views/LibraryManageVie
 import { SettingsView } from '@/components/dashboard/views/SettingsView';
 import { AuditLogsView } from '@/components/dashboard/views/AuditLogsView';
 import { StudentPortalView } from '@/components/dashboard/views/StudentPortalView';
+import { UserApprovalsView } from '@/components/dashboard/views/UserApprovalsView';
+import { CourseEditorView } from '@/components/dashboard/views/CourseEditorView';
 import { UserRole } from '@/types';
 
 function DashboardContent() {
@@ -27,17 +29,26 @@ function DashboardContent() {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
 
   useEffect(() => {
+    const viewParam = searchParams.get('view');
+    if (viewParam) {
+      setCurrentView(viewParam);
+    }
+
     const roleParam = searchParams.get('role') as UserRole;
     if (roleParam && roleParam !== currentUser.role) {
       switchRole(roleParam);
-      if (roleParam === 'student' || roleParam === 'guardian') {
-        setCurrentView('student_portal');
-      } else if (roleParam === 'accountant') {
-        setCurrentView('fees');
-      } else if (roleParam === 'admission_officer') {
-        setCurrentView('admissions');
-      } else if (roleParam === 'teacher') {
-        setCurrentView('attendance');
+      if (!viewParam) {
+        if (roleParam === 'student' || roleParam === 'guardian') {
+          setCurrentView('student_portal');
+        } else if (roleParam === 'accountant') {
+          setCurrentView('fees');
+        } else if (roleParam === 'admission_officer') {
+          setCurrentView('admissions');
+        } else if (roleParam === 'teacher') {
+          setCurrentView('course_editor');
+        } else if (roleParam === 'super_admin') {
+          setCurrentView('user_approvals');
+        }
       }
     }
   }, [searchParams]);
@@ -68,6 +79,10 @@ function DashboardContent() {
         return <AuditLogsView />;
       case 'student_portal':
         return <StudentPortalView />;
+      case 'user_approvals':
+        return <UserApprovalsView />;
+      case 'course_editor':
+        return <CourseEditorView />;
       default:
         return <OverviewView />;
     }

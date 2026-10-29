@@ -6,17 +6,18 @@ import { useSchoolStore } from '@/lib/store/schoolStore';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 import { 
   GraduationCap, Award, CreditCard, CalendarDays, 
-  Printer, CheckCircle2, Clock, FileText 
+  Printer, CheckCircle2, Clock, FileText, Download, BookOpen, Layers
 } from 'lucide-react';
 
 export const StudentPortalView: React.FC = () => {
-  const { students, results, invoices, routine } = useSchoolStore();
+  const { students, results, invoices, routine, courseMaterials } = useSchoolStore();
 
   // Find the sample student
   const student = students[0];
   const myResults = results.filter(r => r.studentId === student.studentId);
   const myInvoices = invoices.filter(i => i.studentId === student.studentId);
   const myRoutine = routine.filter(r => r.className === student.className);
+  const myMaterials = courseMaterials.filter(m => m.className === student.className || m.className === 'All');
 
   return (
     <div className="space-y-6">
@@ -150,6 +151,73 @@ export const StudentPortalView: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Course Materials & Teacher Handouts (Student Download Center) */}
+      <div className="bg-white rounded-lg border border-school-border shadow-sm p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-school-navy flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-school-gold" />
+              <span>My Course Handouts & Lecture Materials (লেকচার নোট ও মেটেরিয়াল ডাউনলোড)</span>
+            </h3>
+            <p className="text-xs text-slate-500">
+              Study handouts and topic notes uploaded by subject teachers for {student.className}
+            </p>
+          </div>
+
+          <span className="bg-school-cream text-school-navy font-bold text-xs px-2.5 py-1 rounded border border-school-border">
+            {myMaterials.length} Handouts Available
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {myMaterials.map((mat) => (
+            <div 
+              key={mat.id}
+              className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-school-gold transition-all flex flex-col justify-between space-y-2.5"
+            >
+              <div>
+                <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 mb-1">
+                  <span className="bg-[#124C7C]/10 text-school-academic font-bold px-1.5 py-0.5 rounded">
+                    {mat.subjectCode} • {mat.subjectName}
+                  </span>
+                  <span>{mat.createdAt}</span>
+                </div>
+
+                <h4 className="text-xs font-bold text-school-navy">
+                  {mat.title}
+                </h4>
+                <p className="text-[11px] font-medium text-amber-800 mt-0.5">
+                  অধ্যায়: {mat.topicName}
+                </p>
+                <p className="text-[11px] text-slate-600 line-clamp-2 mt-1">
+                  {mat.description}
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                <span className="text-[10px] text-slate-500">
+                  By: <strong className="text-school-navy">{mat.uploadedBy}</strong>
+                </span>
+
+                <button
+                  onClick={() => alert(`Starting download: ${mat.fileName} (${mat.fileSize})`)}
+                  className="inline-flex items-center gap-1.5 bg-school-navy hover:bg-school-academic text-white px-2.5 py-1 rounded text-[11px] font-bold shadow-sm transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5 text-school-gold" />
+                  <span>Download ({mat.fileSize})</span>
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {myMaterials.length === 0 && (
+            <div className="col-span-full p-6 text-center text-xs text-slate-500 bg-slate-50 rounded border border-dashed">
+              No lecture materials currently uploaded for this class.
+            </div>
+          )}
         </div>
       </div>
     </div>

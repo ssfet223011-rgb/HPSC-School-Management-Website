@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Menu, Shield, User, Bell, ChevronDown } from 'lucide-react';
+import { Menu, Shield, User, Bell, ChevronDown, LogOut } from 'lucide-react';
 import { useSchoolStore } from '@/lib/store/schoolStore';
 import { UserRole } from '@/types';
 
@@ -14,7 +14,7 @@ export const DashboardHeader: React.FC<HeaderProps> = ({
   currentView,
   setMobileOpen,
 }) => {
-  const { currentUser, switchRole } = useSchoolStore();
+  const { currentUser, switchRole, logout } = useSchoolStore();
 
   const roleOptions: { role: UserRole; label: string }[] = [
     { role: 'super_admin', label: 'Super Admin' },
@@ -85,6 +85,17 @@ export const DashboardHeader: React.FC<HeaderProps> = ({
                 {currentUser.email}
               </span>
             </div>
+
+            <button
+              onClick={() => {
+                logout();
+                window.location.href = '/login';
+              }}
+              title="Sign Out / লগআউট"
+              className="ml-1 p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

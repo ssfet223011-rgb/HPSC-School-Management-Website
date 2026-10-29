@@ -4,7 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   UserProfile, UserRole, StudentRecord, TeacherStaff, AdmissionApplication, 
   DailyAttendanceSession, Examination, StudentResultReport, FeeInvoice, FeePayment, 
-  NoticeItem, SchoolEvent, RoutineItem, LibraryBook, LibraryLoan, AuditLogItem, ClassItem, SectionItem, SubjectItem 
+  NoticeItem, SchoolEvent, RoutineItem, LibraryBook, LibraryLoan, AuditLogItem, 
+  ClassItem, SectionItem, SubjectItem, CourseMaterial, AuthAccount 
 } from '@/types';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 
@@ -42,6 +43,156 @@ const INITIAL_SUBJECTS: SubjectItem[] = [
   { id: 'sub-sci', classId: 'c-8', nameEn: 'General Science', nameBn: 'সাধারণ বিজ্ঞান', code: 'SCI-104', maxMarks: 100, passMarks: 33, type: 'compulsory' },
   { id: 'sub-bgs', classId: 'c-8', nameEn: 'Bangladesh & Global Studies', nameBn: 'বাংলাদেশ ও বিশ্বপরিচয়', code: 'BGS-105', maxMarks: 100, passMarks: 33, type: 'compulsory' },
   { id: 'sub-ict', classId: 'c-8', nameEn: 'ICT', nameBn: 'তথ্য ও যোগাযোগ প্রযুক্তি', code: 'ICT-106', maxMarks: 50, passMarks: 17, type: 'compulsory' },
+];
+
+const INITIAL_AUTH_ACCOUNTS: AuthAccount[] = [
+  {
+    id: 'acc-admin',
+    loginId: 'admin',
+    email: 'admin@hpscctg.edu.bd',
+    passwordHash: 'admin@hpsc2026',
+    role: 'super_admin',
+    nameEn: 'Engr. M. A. Haque (Chairman & Super Admin)',
+    nameBn: 'প্রকৌ. এম. এ. হক (মালিক ও প্রধান নিয়ন্ত্রক)',
+    status: 'active',
+    isApproved: true,
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'acc-tc-1',
+    loginId: 'EMP-001',
+    email: 'rafiqul@hpscctg.edu.bd',
+    passwordHash: 'teacher@123',
+    role: 'teacher',
+    nameEn: 'Md. Rafiqul Islam (Senior Teacher & Editor)',
+    nameBn: 'মো. রফিকুল ইসলাম (সিনিয়র শিক্ষক ও এডিটর)',
+    status: 'active',
+    isApproved: true,
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'acc-tc-2',
+    loginId: 'EMP-002',
+    email: 'farhana@hpscctg.edu.bd',
+    passwordHash: 'teacher@123',
+    role: 'teacher',
+    nameEn: 'Farhana Yeasmin (English Teacher & Editor)',
+    nameBn: 'ফারহানা ইয়াসমিন (শিক্ষক ও এডিটর)',
+    status: 'active',
+    isApproved: true,
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'acc-tc-3',
+    loginId: 'EMP-006',
+    email: 'selim@hpscctg.edu.bd',
+    passwordHash: 'teacher@123',
+    role: 'teacher',
+    nameEn: 'Selim Reza (Assistant Teacher - Physics)',
+    nameBn: 'সেলিম রেজা (সহকারী শিক্ষক)',
+    status: 'pending_approval',
+    isApproved: false,
+    createdAt: '2026-10-28',
+  },
+  {
+    id: 'acc-st-1',
+    loginId: 'HPSC-2026-0801',
+    email: 'tanvir@hpscctg.edu.bd',
+    passwordHash: 'student@123',
+    role: 'student',
+    nameEn: 'Tanvir Hasan (Student)',
+    nameBn: 'তানভীর হাসান (শিক্ষার্থী)',
+    status: 'active',
+    isApproved: true,
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'acc-st-2',
+    loginId: 'HPSC-2026-0802',
+    email: 'nusrat@hpscctg.edu.bd',
+    passwordHash: 'student@123',
+    role: 'student',
+    nameEn: 'Nusrat Jahan (Student)',
+    nameBn: 'নুসরাত জাহান (শিক্ষার্থী)',
+    status: 'active',
+    isApproved: true,
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'acc-st-3',
+    loginId: 'HPSC-2026-0805',
+    email: 'zubair@hpscctg.edu.bd',
+    passwordHash: 'student@123',
+    role: 'student',
+    nameEn: 'Zubair Ahmed (New Enrolled Student)',
+    nameBn: 'জুবায়ের আহমেদ (নতুন শিক্ষার্থী)',
+    status: 'pending_approval',
+    isApproved: false,
+    createdAt: '2026-10-29',
+  }
+];
+
+const INITIAL_COURSE_MATERIALS: CourseMaterial[] = [
+  {
+    id: 'mat-1',
+    title: 'Algebraic Formulas & Expansion - Chapter 4 Lecture Notes',
+    topicName: 'বীজগাণিতিক সূত্রাবলি ও প্রয়োগ',
+    subjectCode: 'MATH-103',
+    subjectName: 'General Mathematics',
+    className: 'Class 8',
+    uploadedBy: 'Md. Rafiqul Islam (Senior Teacher)',
+    teacherId: 'EMP-001',
+    description: 'Complete handwritten formula sheet, solved board standard problems, and homework practice questions for upcoming exams.',
+    fileName: 'Math_Class8_Chapter4_Formulas.pdf',
+    fileSize: '2.4 MB',
+    fileType: 'pdf',
+    createdAt: '2026-10-22',
+  },
+  {
+    id: 'mat-2',
+    title: 'Atomic Structure & Periodic Table Fundamental Concepts',
+    topicName: 'পরমাণুর গঠন ও পর্যায় সারণি',
+    subjectCode: 'SCI-104',
+    subjectName: 'General Science',
+    className: 'Class 8',
+    uploadedBy: 'Kamal Hossain (Lecturer)',
+    teacherId: 'EMP-003',
+    description: 'Comprehensive lecture slides detailing electron configuration, isotopes, and Rutherford/Bohr atomic models.',
+    fileName: 'Science_Atomic_Structure_Handout.pdf',
+    fileSize: '3.8 MB',
+    fileType: 'pdf',
+    createdAt: '2026-10-20',
+  },
+  {
+    id: 'mat-3',
+    title: 'English First Paper - Seen Comprehension & Paragraph Writing Format',
+    topicName: 'Unit 5: Lesson 3 Comprehension',
+    subjectCode: 'ENG-102',
+    subjectName: 'English First Paper',
+    className: 'Class 8',
+    uploadedBy: 'Farhana Yeasmin (Senior Teacher)',
+    teacherId: 'EMP-002',
+    description: 'Sample dialogue writing, formal letter formats, and model questions prepared for the second term evaluation.',
+    fileName: 'English_Seen_Passage_Model_Questions.pdf',
+    fileSize: '1.5 MB',
+    fileType: 'pdf',
+    createdAt: '2026-10-18',
+  },
+  {
+    id: 'mat-4',
+    title: 'ICT Chapter 3: Cyber Security, Malware & Ethics in Technology',
+    topicName: 'সাইবার নিরাপত্তা ও কম্পিউটার এথিক্স',
+    subjectCode: 'ICT-106',
+    subjectName: 'Information & Communication Tech',
+    className: 'Class 8',
+    uploadedBy: 'Md. Rafiqul Islam (Senior Teacher)',
+    teacherId: 'EMP-001',
+    description: 'Practical lab manual for Antivirus configuration, safe internet browsing guidelines, and digital law summary.',
+    fileName: 'ICT_Cyber_Security_Lab_Guide.pdf',
+    fileSize: '4.1 MB',
+    fileType: 'pdf',
+    createdAt: '2026-10-15',
+  }
 ];
 
 const INITIAL_STUDENTS: StudentRecord[] = [
@@ -173,7 +324,7 @@ const INITIAL_STAFF: TeacherStaff[] = [
     employeeId: 'EMP-001',
     nameEn: 'Md. Rafiqul Islam',
     nameBn: 'মো. রফিকুল ইসলাম',
-    designation: 'Assistant Headmaster & Senior Teacher (Math)',
+    designation: 'Assistant Headmaster & Senior Teacher (Math & Editor)',
     department: 'Science & Mathematics',
     qualification: 'M.Sc in Mathematics (CU), B.Ed',
     phone: '01819545654',
@@ -188,7 +339,7 @@ const INITIAL_STAFF: TeacherStaff[] = [
     employeeId: 'EMP-002',
     nameEn: 'Farhana Yeasmin',
     nameBn: 'ফারহানা ইয়াসমিন',
-    designation: 'Senior Teacher (English)',
+    designation: 'Senior Teacher (English & Editor)',
     department: 'Humanities & Languages',
     qualification: 'M.A in English Literature (CU), B.Ed',
     phone: '01829730515',
@@ -429,7 +580,10 @@ interface SchoolStoreType {
   currentUser: UserProfile;
   setCurrentUser: (user: UserProfile) => void;
   switchRole: (role: UserRole) => void;
-  
+  isAuthenticated: boolean;
+  login: (portalType: 'super_admin' | 'teacher' | 'student', loginId: string, password: string) => { success: boolean; message: string };
+  logout: () => void;
+
   // Data entities
   classes: ClassItem[];
   sections: SectionItem[];
@@ -443,6 +597,8 @@ interface SchoolStoreType {
   admissions: AdmissionApplication[];
   libraryBooks: LibraryBook[];
   auditLogs: AuditLogItem[];
+  authAccounts: AuthAccount[];
+  courseMaterials: CourseMaterial[];
 
   // Operations
   addStudent: (student: Omit<StudentRecord, 'id'>) => void;
@@ -464,20 +620,32 @@ interface SchoolStoreType {
   createInvoice: (invoice: Omit<FeeInvoice, 'id' | 'invoiceNumber' | 'paidAmount' | 'status' | 'createdAt'>) => void;
 
   saveMarksAndProcessResult: (studentId: string, examName: string, marks: { subjectName: string; subjectCode: string; maxMarks: number; obtained: number }[]) => void;
+
+  // Super Admin Account Approvals & Access Controls
+  approveAccount: (accountId: string) => void;
+  toggleAccountStatus: (accountId: string, status: 'active' | 'suspended') => void;
+  createAccount: (data: Omit<AuthAccount, 'id' | 'createdAt'>) => void;
+
+  // Teacher / Editor Course Materials Operations
+  addCourseMaterial: (material: Omit<CourseMaterial, 'id' | 'createdAt'>) => void;
+  updateCourseMaterial: (id: string, data: Partial<CourseMaterial>) => void;
+  deleteCourseMaterial: (id: string) => void;
 }
 
 const SchoolStoreContext = createContext<SchoolStoreType | undefined>(undefined);
 
 export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Current active user for role simulation
+  // Current active user
   const [currentUser, setCurrentUser] = useState<UserProfile>({
     id: 'usr-admin',
-    email: 'admin@hpscctg.mail.com',
-    nameEn: 'Administrator',
-    nameBn: 'সুপার প্রশাসক',
+    email: 'admin@hpscctg.edu.bd',
+    nameEn: 'Engr. M. A. Haque (Chairman & Super Admin)',
+    nameBn: 'প্রকৌ. এম. এ. হক (মালিক ও প্রধান নিয়ন্ত্রক)',
     role: 'super_admin',
     phone: '01819545654',
   });
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // default true for immediate smooth exploration
 
   const [classes, setClasses] = useState<ClassItem[]>(INITIAL_CLASSES);
   const [sections, setSections] = useState<SectionItem[]>(INITIAL_SECTIONS);
@@ -490,6 +658,9 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [invoices, setInvoices] = useState<FeeInvoice[]>(INITIAL_INVOICES);
   const [admissions, setAdmissions] = useState<AdmissionApplication[]>(INITIAL_ADMISSIONS);
   const [libraryBooks, setLibraryBooks] = useState<LibraryBook[]>(INITIAL_LIBRARY_BOOKS);
+  const [authAccounts, setAuthAccounts] = useState<AuthAccount[]>(INITIAL_AUTH_ACCOUNTS);
+  const [courseMaterials, setCourseMaterials] = useState<CourseMaterial[]>(INITIAL_COURSE_MATERIALS);
+
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([
     {
       id: 'log-1',
@@ -516,8 +687,17 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const savedInvoices = localStorage.getItem('hpsc_invoices');
       if (savedInvoices) setInvoices(JSON.parse(savedInvoices));
 
+      const savedAccounts = localStorage.getItem('hpsc_auth_accounts');
+      if (savedAccounts) setAuthAccounts(JSON.parse(savedAccounts));
+
+      const savedMaterials = localStorage.getItem('hpsc_course_materials');
+      if (savedMaterials) setCourseMaterials(JSON.parse(savedMaterials));
+
       const savedUser = localStorage.getItem('hpsc_current_user');
       if (savedUser) setCurrentUser(JSON.parse(savedUser));
+
+      const savedAuth = localStorage.getItem('hpsc_is_auth');
+      if (savedAuth !== null) setIsAuthenticated(savedAuth === 'true');
     } catch {
       // LocalStorage error fallback
     }
@@ -535,10 +715,83 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setAuditLogs(prev => [newLog, ...prev]);
   };
 
+  // Authentication: Role-specific login
+  const login = (
+    portalType: 'super_admin' | 'teacher' | 'student',
+    loginId: string,
+    password: string
+  ): { success: boolean; message: string } => {
+    const cleanId = loginId.trim().toLowerCase();
+    const cleanPass = password.trim();
+
+    // Find account
+    const account = authAccounts.find(
+      acc => (acc.loginId.toLowerCase() === cleanId || acc.email.toLowerCase() === cleanId) &&
+             acc.passwordHash === cleanPass
+    );
+
+    if (!account) {
+      return { success: false, message: 'Invalid Login ID or Password. Please check your credentials.' };
+    }
+
+    // Role check against portal
+    if (portalType === 'super_admin' && account.role !== 'super_admin' && account.role !== 'school_admin' && account.role !== 'principal') {
+      return { success: false, message: 'Access denied: You do not hold Super Admin / Owner privileges for this portal.' };
+    }
+
+    if (portalType === 'teacher' && account.role !== 'teacher' && account.role !== 'super_admin') {
+      return { success: false, message: 'Access denied: This login ID is not registered as an authorized Teacher or Editor.' };
+    }
+
+    if (portalType === 'student' && account.role !== 'student' && account.role !== 'super_admin') {
+      return { success: false, message: 'Access denied: Please use the Student Portal with a valid Student ID.' };
+    }
+
+    // Status & Approval Check
+    if (!account.isApproved || account.status === 'pending_approval') {
+      return { 
+        success: false, 
+        message: 'Your account is currently PENDING approval from the Super Admin. Please contact school administration.' 
+      };
+    }
+
+    if (account.status === 'suspended') {
+      return { 
+        success: false, 
+        message: 'Your account has been SUSPENDED by the Super Admin. Please contact school administration.' 
+      };
+    }
+
+    // Authenticate
+    const userProfile: UserProfile = {
+      id: account.id,
+      email: account.email,
+      nameEn: account.nameEn,
+      nameBn: account.nameBn,
+      role: account.role,
+      studentId: account.role === 'student' ? account.loginId : undefined,
+      employeeId: account.role === 'teacher' ? account.loginId : undefined,
+    };
+
+    setCurrentUser(userProfile);
+    setIsAuthenticated(true);
+    localStorage.setItem('hpsc_current_user', JSON.stringify(userProfile));
+    localStorage.setItem('hpsc_is_auth', 'true');
+
+    addAuditLog('USER_LOGIN', `User ${account.nameEn} (${account.loginId}) logged into ${portalType} portal.`);
+    return { success: true, message: 'Login successful' };
+  };
+
+  const logout = () => {
+    addAuditLog('USER_LOGOUT', `User ${currentUser.nameEn} logged out.`);
+    setIsAuthenticated(false);
+    localStorage.setItem('hpsc_is_auth', 'false');
+  };
+
   const switchRole = (role: UserRole) => {
     let mockProfile: UserProfile = {
       id: `usr-${role}`,
-      email: `${role}@hpscctg.mail.com`,
+      email: `${role}@hpscctg.edu.bd`,
       role,
       nameEn: '',
       nameBn: '',
@@ -546,7 +799,7 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     switch (role) {
       case 'super_admin':
-        mockProfile = { ...mockProfile, nameEn: 'Engr. M. A. Haque', nameBn: 'প্রকৌ. এম. এ. হক', role: 'super_admin' };
+        mockProfile = { ...mockProfile, nameEn: 'Engr. M. A. Haque (Chairman & Super Admin)', nameBn: 'প্রকৌ. এম. এ. হক (মালিক ও প্রধান নিয়ন্ত্রক)', role: 'super_admin' };
         break;
       case 'school_admin':
         mockProfile = { ...mockProfile, nameEn: 'Admin Officer', nameBn: 'বিদ্যালয় প্রশাসক', role: 'school_admin' };
@@ -555,7 +808,7 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
         mockProfile = { ...mockProfile, nameEn: 'Principal (Head of Institution)', nameBn: 'অধ্যক্ষ মহোদয়', role: 'principal' };
         break;
       case 'teacher':
-        mockProfile = { ...mockProfile, nameEn: 'Md. Rafiqul Islam (Senior Teacher)', nameBn: 'মো. রফিকুল ইসলাম (সিনিয়র শিক্ষক)', role: 'teacher', employeeId: 'EMP-001' };
+        mockProfile = { ...mockProfile, nameEn: 'Md. Rafiqul Islam (Senior Teacher & Editor)', nameBn: 'মো. রফিকুল ইসলাম (সিনিয়র শিক্ষক ও এডিটর)', role: 'teacher', employeeId: 'EMP-001' };
         break;
       case 'accountant':
         mockProfile = { ...mockProfile, nameEn: 'Abdul Karim (Head Accountant)', nameBn: 'আব্দুল করিম (হিসাবরক্ষক)', role: 'accountant' };
@@ -575,8 +828,70 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     setCurrentUser(mockProfile);
+    setIsAuthenticated(true);
     localStorage.setItem('hpsc_current_user', JSON.stringify(mockProfile));
+    localStorage.setItem('hpsc_is_auth', 'true');
     addAuditLog('ROLE_SWITCH', `Switched active portal role to ${role}`);
+  };
+
+  // Super Admin: Account Approvals & User Control
+  const approveAccount = (accountId: string) => {
+    const updated = authAccounts.map(a => 
+      a.id === accountId ? { ...a, isApproved: true, status: 'active' as const } : a
+    );
+    setAuthAccounts(updated);
+    localStorage.setItem('hpsc_auth_accounts', JSON.stringify(updated));
+    const target = authAccounts.find(a => a.id === accountId);
+    addAuditLog('ACCOUNT_APPROVED', `Super Admin approved access for: ${target?.nameEn} (${target?.loginId})`);
+  };
+
+  const toggleAccountStatus = (accountId: string, status: 'active' | 'suspended') => {
+    const updated = authAccounts.map(a => 
+      a.id === accountId ? { ...a, status } : a
+    );
+    setAuthAccounts(updated);
+    localStorage.setItem('hpsc_auth_accounts', JSON.stringify(updated));
+    const target = authAccounts.find(a => a.id === accountId);
+    addAuditLog('ACCOUNT_STATUS_CHANGE', `Super Admin changed status of ${target?.loginId} to ${status}`);
+  };
+
+  const createAccount = (data: Omit<AuthAccount, 'id' | 'createdAt'>) => {
+    const newAcc: AuthAccount = {
+      ...data,
+      id: `acc-${Date.now()}`,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    const updated = [newAcc, ...authAccounts];
+    setAuthAccounts(updated);
+    localStorage.setItem('hpsc_auth_accounts', JSON.stringify(updated));
+    addAuditLog('ACCOUNT_CREATED', `Super Admin created new user account: ${newAcc.nameEn} (${newAcc.loginId}) as ${newAcc.role}`);
+  };
+
+  // Teacher / Editor: Course Materials & Topic Upload
+  const addCourseMaterial = (material: Omit<CourseMaterial, 'id' | 'createdAt'>) => {
+    const newMat: CourseMaterial = {
+      ...material,
+      id: `mat-${Date.now()}`,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    const updated = [newMat, ...courseMaterials];
+    setCourseMaterials(updated);
+    localStorage.setItem('hpsc_course_materials', JSON.stringify(updated));
+    addAuditLog('MATERIAL_UPLOAD', `Teacher ${newMat.uploadedBy} uploaded topic: ${newMat.title} for ${newMat.className}`);
+  };
+
+  const updateCourseMaterial = (id: string, data: Partial<CourseMaterial>) => {
+    const updated = courseMaterials.map(m => m.id === id ? { ...m, ...data } : m);
+    setCourseMaterials(updated);
+    localStorage.setItem('hpsc_course_materials', JSON.stringify(updated));
+    addAuditLog('MATERIAL_EDIT', `Teacher edited course topic ID: ${id}`);
+  };
+
+  const deleteCourseMaterial = (id: string) => {
+    const updated = courseMaterials.filter(m => m.id !== id);
+    setCourseMaterials(updated);
+    localStorage.setItem('hpsc_course_materials', JSON.stringify(updated));
+    addAuditLog('MATERIAL_DELETE', `Deleted course material ID: ${id}`);
   };
 
   // Student Operations
@@ -588,6 +903,19 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const updated = [newStudent, ...students];
     setStudents(updated);
     localStorage.setItem('hpsc_students', JSON.stringify(updated));
+
+    // Also auto-create a student auth account
+    createAccount({
+      loginId: newStudent.studentId,
+      email: `${newStudent.studentId.toLowerCase()}@hpscctg.edu.bd`,
+      passwordHash: 'student@123',
+      role: 'student',
+      nameEn: newStudent.nameEn,
+      nameBn: newStudent.nameBn,
+      status: 'active',
+      isApproved: true,
+    });
+
     addAuditLog('STUDENT_CREATE', `Enrolled student: ${newStudent.nameEn} (${newStudent.studentId})`);
   };
 
@@ -612,6 +940,19 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       id: `tc-${Date.now()}`,
     };
     setStaff(prev => [newStaff, ...prev]);
+
+    // Also create teacher auth account
+    createAccount({
+      loginId: newStaff.employeeId,
+      email: newStaff.email,
+      passwordHash: 'teacher@123',
+      role: 'teacher',
+      nameEn: `${newStaff.nameEn} (Teacher & Editor)`,
+      nameBn: `${newStaff.nameBn} (শিক্ষক ও এডিটর)`,
+      status: 'active',
+      isApproved: true,
+    });
+
     addAuditLog('TEACHER_CREATE', `Added staff member: ${newStaff.nameEn} (${newStaff.employeeId})`);
   };
 
@@ -795,6 +1136,9 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       currentUser,
       setCurrentUser,
       switchRole,
+      isAuthenticated,
+      login,
+      logout,
       classes,
       sections,
       subjects,
@@ -807,6 +1151,8 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       admissions,
       libraryBooks,
       auditLogs,
+      authAccounts,
+      courseMaterials,
       addStudent,
       updateStudent,
       deleteStudent,
@@ -821,6 +1167,12 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       recordPayment,
       createInvoice,
       saveMarksAndProcessResult,
+      approveAccount,
+      toggleAccountStatus,
+      createAccount,
+      addCourseMaterial,
+      updateCourseMaterial,
+      deleteCourseMaterial,
     }}>
       {children}
     </SchoolStoreContext.Provider>

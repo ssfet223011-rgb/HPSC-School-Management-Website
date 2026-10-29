@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Home, Info, BookOpen, GraduationCap, Users, UserCheck, 
-  Megaphone, Image as ImageIcon, Phone, Search, Menu, X, ChevronDown 
+  Megaphone, Image as ImageIcon, Phone, Search, Menu, X, ChevronDown, User, KeyRound 
 } from 'lucide-react';
 import { useLanguage } from '@/lib/localization/LanguageContext';
 
@@ -129,28 +129,50 @@ export const Navbar: React.FC = () => {
           })}
         </div>
 
-        {/* Website Search Box */}
-        <form onSubmit={handleSearchSubmit} className="hidden sm:flex items-center relative my-1.5">
-          <input
-            type="text"
-            placeholder={t('searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-44 lg:w-56 bg-white/90 text-school-body placeholder-slate-500 text-xs px-3 py-1.5 pr-8 rounded-full border border-amber-600/40 focus:outline-none focus:ring-2 focus:ring-school-navy focus:bg-white transition-all shadow-inner"
-          />
-          <button
-            type="submit"
-            aria-label="Search"
-            className="absolute right-2 text-school-navy hover:text-school-academic transition-colors"
+        {/* Search & Login on Desktop */}
+        <div className="hidden sm:flex items-center gap-2">
+          {/* Website Search Box */}
+          <form onSubmit={handleSearchSubmit} className="flex items-center relative my-1.5">
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-32 lg:w-44 bg-white/90 text-school-body placeholder-slate-500 text-xs px-3 py-1.5 pr-8 rounded-full border border-amber-600/40 focus:outline-none focus:ring-2 focus:ring-school-navy focus:bg-white transition-all shadow-inner"
+            />
+            <button
+              type="submit"
+              aria-label="Search"
+              className="absolute right-2 text-school-navy hover:text-school-academic transition-colors"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </form>
+
+          {/* Login Option */}
+          <Link
+            href="/login"
+            className="flex items-center gap-1.5 bg-school-navy hover:bg-[#051f36] text-white px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow hover:scale-105 border border-amber-400/40"
           >
-            <Search className="w-4 h-4" />
-          </button>
-        </form>
+            <User className="w-3.5 h-3.5 text-school-gold" />
+            <span>{language === 'bn' ? 'লগইন' : 'Login'}</span>
+          </Link>
+        </div>
       </div>
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-school-navy text-white border-t border-amber-600/30 px-4 py-3 space-y-1">
+          <div className="pb-2 border-b border-white/10">
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2 w-full bg-[#D6A545] hover:bg-yellow-400 text-school-navy font-bold py-2 rounded text-xs shadow"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>{language === 'bn' ? 'লগইন করুন (Super Admin / Teacher / Student)' : 'Sign In to Portal'}</span>
+            </Link>
+          </div>
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (

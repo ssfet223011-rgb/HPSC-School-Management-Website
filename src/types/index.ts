@@ -286,6 +286,36 @@ export interface LibraryLoan {
   status: 'issued' | 'returned' | 'overdue';
 }
 
+export interface CourseMaterial {
+  id: string;
+  title: string;
+  subjectCode: string;
+  subjectName: string;
+  className: string;
+  topicName: string;
+  uploadedBy: string;
+  teacherId: string;
+  description: string;
+  fileName: string;
+  fileSize: string;
+  fileType: string;
+  createdAt: string;
+  downloadUrl?: string;
+}
+
+export interface AuthAccount {
+  id: string;
+  loginId: string; // e.g. 'admin', 'EMP-001', 'HPSC-2026-0801'
+  email: string;
+  passwordHash: string;
+  role: UserRole;
+  nameEn: string;
+  nameBn: string;
+  status: 'active' | 'pending_approval' | 'suspended';
+  isApproved: boolean;
+  createdAt: string;
+}
+
 export interface AuditLogItem {
   id: string;
   action: string;

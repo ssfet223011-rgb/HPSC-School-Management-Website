@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, Calendar, Printer, Globe, Shield } from 'lucide-react';
+import { Phone, Mail, MapPin, Calendar, Printer, Globe, Shield, KeyRound, User } from 'lucide-react';
 import { useLanguage } from '@/lib/localization/LanguageContext';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 import Link from 'next/link';
@@ -118,13 +118,14 @@ export const TopBar: React.FC = () => {
 
           <span className="text-slate-500">|</span>
 
-          {/* ERP Portal Link */}
+          {/* Prominent Login Option (Right Side Upper Corner) */}
           <Link
-            href="/dashboard"
-            className="flex items-center gap-1 bg-school-gold/20 hover:bg-school-gold hover:text-school-navy text-school-lightGold px-2 py-0.5 rounded text-[11px] font-semibold transition-all border border-school-gold/40"
+            href="/login"
+            className="flex items-center gap-1.5 bg-[#D6A545] hover:bg-yellow-400 text-school-navy px-3 py-1 rounded text-xs font-extrabold transition-all shadow-md border border-amber-300 scale-105"
+            title="Super Admin, Teachers & Students Login"
           >
-            <Shield className="w-3 h-3" />
-            <span>ERP Portal</span>
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>{language === 'bn' ? 'লগইন' : 'Login'}</span>
           </Link>
         </div>
       </div>

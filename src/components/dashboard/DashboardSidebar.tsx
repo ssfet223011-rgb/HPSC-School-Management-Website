@@ -26,7 +26,7 @@ export const DashboardSidebar: React.FC<SidebarProps> = ({
   mobileOpen,
   setMobileOpen,
 }) => {
-  const { currentUser } = useSchoolStore();
+  const { currentUser, logout } = useSchoolStore();
   const role = currentUser.role;
 
   // Determine permitted modules based on role
@@ -50,6 +50,7 @@ export const DashboardSidebar: React.FC<SidebarProps> = ({
       title: 'ACADEMIC & STUDENTS',
       items: [
         { id: 'students', label: 'Student Management', icon: Users, visible: isPrivileged || isTeacher },
+        { id: 'course_editor', label: 'Course Topics & Handouts', icon: BookOpen, visible: isPrivileged || isTeacher },
         { id: 'attendance', label: 'Daily Attendance', icon: ClipboardCheck, visible: isPrivileged || isTeacher },
         { id: 'exams', label: 'Exams & Marks Entry', icon: Award, visible: isPrivileged || isTeacher },
         { id: 'admissions', label: 'Admission Applications', icon: GraduationCap, visible: isPrivileged || isAdmissionOfficer },
@@ -67,6 +68,7 @@ export const DashboardSidebar: React.FC<SidebarProps> = ({
     {
       title: 'ADMINISTRATION',
       items: [
+        { id: 'user_approvals', label: 'User ID & Role Approvals', icon: Shield, visible: role === 'super_admin' },
         { id: 'settings', label: 'School Settings', icon: Settings, visible: isPrivileged },
         { id: 'audit_logs', label: 'Audit Logs', icon: History, visible: role === 'super_admin' },
       ]
@@ -149,7 +151,7 @@ export const DashboardSidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        {/* Footer / Back to Website Link */}
+        {/* Footer / Back to Website Link & Logout */}
         <div className="p-3 border-t border-white/10 space-y-2">
           <Link
             href="/"
@@ -157,6 +159,17 @@ export const DashboardSidebar: React.FC<SidebarProps> = ({
           >
             <span>Return to Public Website</span>
           </Link>
+
+          <button
+            onClick={() => {
+              logout();
+              window.location.href = '/login';
+            }}
+            className="flex items-center justify-center gap-2 w-full py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-semibold rounded transition-colors border border-rose-500/30"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out / লগআউট</span>
+          </button>
         </div>
       </aside>
     </>
