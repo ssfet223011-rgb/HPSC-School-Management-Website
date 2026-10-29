@@ -200,6 +200,37 @@ export default function NoticesPage() {
               <p>{language === 'bn' ? activeModalNotice.contentBn : activeModalNotice.contentEn}</p>
             </div>
 
+            {/* Official Attachment Download Box */}
+            {(activeModalNotice.attachmentName || activeModalNotice.attachmentUrl) && (
+              <div className="my-4 p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between no-print">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded bg-rose-50 text-rose-700 flex items-center justify-center font-bold text-xs border border-rose-200">
+                    PDF
+                  </div>
+                  <div>
+                    <strong className="block text-xs text-school-navy">
+                      {activeModalNotice.attachmentName || 'Official_Circular.pdf'}
+                    </strong>
+                    <span className="text-[10px] text-slate-500">Official Circular Handout</span>
+                  </div>
+                </div>
+
+                <a
+                  href={activeModalNotice.attachmentUrl || '#'}
+                  download={activeModalNotice.attachmentName || 'notice_circular.pdf'}
+                  onClick={(e) => {
+                    if (!activeModalNotice.attachmentUrl) {
+                      alert(`Downloading attached circular: ${activeModalNotice.attachmentName}`);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 bg-school-navy hover:bg-school-academic text-white px-3.5 py-1.5 rounded text-xs font-bold shadow transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5 text-school-gold" />
+                  <span>Download Document</span>
+                </a>
+              </div>
+            )}
+
             {/* Official Signoff Box */}
             <div className="pt-12 flex justify-end text-center text-xs">
               <div>

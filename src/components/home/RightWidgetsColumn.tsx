@@ -12,7 +12,7 @@ import { useLanguage } from '@/lib/localization/LanguageContext';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 
 export const RightWidgetsColumn: React.FC = () => {
-  const { notices } = useSchoolStore();
+  const { notices, galleryPhotos } = useSchoolStore();
   const { language } = useLanguage();
 
   const quickLinks = [
@@ -109,38 +109,24 @@ export const RightWidgetsColumn: React.FC = () => {
 
         <div className="p-3">
           <div className="grid grid-cols-2 gap-2">
-            <div className="relative h-20 rounded overflow-hidden border border-school-border shadow-sm group">
-              <Image
-                src={SCHOOL_CONFIG.branding.campusMainUrl}
-                alt="Campus Entrance"
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div className="relative h-20 rounded overflow-hidden border border-school-border shadow-sm group">
-              <Image
-                src={SCHOOL_CONFIG.branding.campusBannerUrl}
-                alt="Campus Building"
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div className="relative h-20 rounded overflow-hidden border border-school-border shadow-sm group">
-              <Image
-                src={SCHOOL_CONFIG.branding.campusMainUrl}
-                alt="Sports Event"
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div className="relative h-20 rounded overflow-hidden border border-school-border shadow-sm group">
-              <Image
-                src={SCHOOL_CONFIG.branding.campusBannerUrl}
-                alt="Classroom"
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
+            {(galleryPhotos.length > 0 ? galleryPhotos.slice(0, 4) : [
+              { id: '1', image: SCHOOL_CONFIG.branding.campusMainUrl, titleEn: 'Campus' },
+              { id: '2', image: SCHOOL_CONFIG.branding.campusBannerUrl, titleEn: 'Building' },
+              { id: '3', image: SCHOOL_CONFIG.branding.campusMainUrl, titleEn: 'Sports' },
+              { id: '4', image: SCHOOL_CONFIG.branding.campusBannerUrl, titleEn: 'Classroom' },
+            ]).map((p, idx) => (
+              <Link 
+                key={p.id || idx}
+                href="/gallery"
+                className="relative h-20 rounded overflow-hidden border border-school-border shadow-sm group block bg-slate-100"
+              >
+                <img
+                  src={p.image}
+                  alt={p.titleEn || 'Photo'}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </Link>
+            ))}
           </div>
         </div>
       </div>

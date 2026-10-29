@@ -6,48 +6,50 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, GraduationCap, BookOpen } from 'lucide-react';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 import { useLanguage } from '@/lib/localization/LanguageContext';
-
-const slides = [
-  {
-    image: SCHOOL_CONFIG.branding.campusBannerUrl,
-    titleEn: 'Education Builds A Better Future',
-    titleBn: 'শিক্ষা মানুষের আলোকিত ভবিষ্যৎ গড়ে তোলে',
-    subtitleEn: 'HALISHAHAR PUBLIC SCHOOL AND COLLEGE',
-    subtitleBn: 'হালিশহর পাবলিক স্কুল এন্ড কলেজ',
-    descEn: 'Committed to academic excellence, discipline, and moral values since 2002.',
-    descBn: '২০০২ সাল থেকে চট্টগ্রামে জ্ঞান, শৃঙ্খলা ও নৈতিক শিক্ষার আদর্শ পীঠস্থান।',
-  },
-  {
-    image: SCHOOL_CONFIG.branding.campusMainUrl,
-    titleEn: 'Admissions Open for Academic Session 2026',
-    titleBn: '২০২৬ শিক্ষাবর্ষে ভর্তি আবেদন চলছে',
-    subtitleEn: 'Class 6 to Class 9 (Secondary Level)',
-    subtitleBn: '৬ষ্ঠ থেকে ৯ম শ্রেণি (মাধ্যমিক শাখা)',
-    descEn: 'Apply online easily and track your application status in real-time.',
-    descBn: 'অনলাইনে সহজে আবেদন করুন এবং রিয়েল-টাইম আবেদনের অগ্রগতি জানুন।',
-  },
-];
+import { useSchoolStore } from '@/lib/store/schoolStore';
 
 export const HeroCarousel: React.FC = () => {
   const { language } = useLanguage();
+  const { brandingAssets } = useSchoolStore();
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const dynamicSlides = [
+    {
+      image: brandingAssets.campusBannerUrl,
+      titleEn: 'Education Builds A Better Future',
+      titleBn: 'শিক্ষা মানুষের আলোকিত ভবিষ্যৎ গড়ে তোলে',
+      subtitleEn: 'HALISHAHAR PUBLIC SCHOOL AND COLLEGE',
+      subtitleBn: 'হালিশহর পাবলিক স্কুল এন্ড কলেজ',
+      descEn: 'Committed to academic excellence, discipline, and moral values since 2002.',
+      descBn: '২০০২ সাল থেকে চট্টগ্রামে জ্ঞান, শৃঙ্খলা ও নৈতিক শিক্ষার আদর্শ পীঠস্থান।',
+    },
+    {
+      image: brandingAssets.campusMainUrl,
+      titleEn: 'Admissions Open for Academic Session 2026',
+      titleBn: '২০২৬ শিক্ষাবর্ষে ভর্তি আবেদন চলছে',
+      subtitleEn: 'Class 6 to Class 9 (Secondary Level)',
+      subtitleBn: '৬ষ্ঠ থেকে ৯ম শ্রেণি (মাধ্যমিক শাখা)',
+      descEn: 'Apply online easily and track your application status in real-time.',
+      descBn: 'অনলাইনে সহজে আবেদন করুন এবং রিয়েল-টাইম আবেদনের অগ্রগতি জানুন।',
+    },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [dynamicSlides.length]);
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+    setCurrentSlide((prev) => (prev === 0 ? dynamicSlides.length - 1 : prev - 1));
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length);
   };
 
-  const slide = slides[currentSlide];
+  const slide = dynamicSlides[currentSlide];
 
   return (
     <div className="relative w-full h-[280px] sm:h-[340px] md:h-[400px] overflow-hidden bg-school-navy shadow-md no-print">
@@ -57,6 +59,7 @@ export const HeroCarousel: React.FC = () => {
           src={slide.image}
           alt="School Campus Banner"
           fill
+          unoptimized
           className="object-cover opacity-35"
           priority
         />
@@ -116,7 +119,7 @@ export const HeroCarousel: React.FC = () => {
 
       {/* Slide Indicators */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-        {slides.map((_, idx) => (
+        {dynamicSlides.map((_, idx) => (
           <button
             key={idx}
             onClick={() => setCurrentSlide(idx)}

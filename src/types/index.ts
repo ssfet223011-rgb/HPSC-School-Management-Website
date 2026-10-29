@@ -325,3 +325,20 @@ export interface AuditLogItem {
   timestamp: string;
   ipAddress?: string;
 }
+
+export interface GalleryPhoto {
+  id: string;
+  titleEn: string;
+  titleBn: string;
+  category: 'Campus' | 'Academic' | 'Events';
+  image: string; // File URL or base64 data URL uploaded from device
+  caption?: string;
+  uploadedBy?: string;
+  uploadedAt?: string;
+}
+
+export interface SchoolBrandingAssets {
+  logoUrl: string;
+  campusMainUrl: string;
+  campusBannerUrl: string;
+}

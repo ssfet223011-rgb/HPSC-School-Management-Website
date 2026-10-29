@@ -8,6 +8,7 @@ import {
   FileCode, FileSpreadsheet, Paperclip
 } from 'lucide-react';
 import { CourseMaterial } from '@/types';
+import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
 
 export const CourseEditorView: React.FC = () => {
   const { 
@@ -38,6 +39,7 @@ export const CourseEditorView: React.FC = () => {
     fileName: '',
     fileSize: '1.8 MB',
     fileType: 'pdf',
+    downloadUrl: '',
   });
 
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
@@ -54,6 +56,7 @@ export const CourseEditorView: React.FC = () => {
       fileName: 'Lecture_Handout_HPSC.pdf',
       fileSize: '2.5 MB',
       fileType: 'pdf',
+      downloadUrl: '',
     });
     setIsModalOpen(true);
   };
@@ -70,6 +73,7 @@ export const CourseEditorView: React.FC = () => {
       fileName: item.fileName,
       fileSize: item.fileSize,
       fileType: item.fileType,
+      downloadUrl: item.downloadUrl || '',
     });
     setIsModalOpen(true);
   };
@@ -92,6 +96,7 @@ export const CourseEditorView: React.FC = () => {
         fileName: formData.fileName || 'Course_Lecture_Notes.pdf',
         fileSize: formData.fileSize,
         fileType: formData.fileType,
+        downloadUrl: formData.downloadUrl || '#',
       });
       setFeedbackMsg('Topic and lecture material successfully updated!');
     } else {
@@ -107,7 +112,7 @@ export const CourseEditorView: React.FC = () => {
         fileName: formData.fileName || 'Topic_Lecture_Material.pdf',
         fileSize: formData.fileSize || '2.1 MB',
         fileType: formData.fileType || 'pdf',
-        downloadUrl: '#',
+        downloadUrl: formData.downloadUrl || '#',
       });
       setFeedbackMsg('New course topic and study file successfully published!');
     }
@@ -283,10 +288,13 @@ export const CourseEditorView: React.FC = () => {
                 </div>
 
                 <a
-                  href="#download"
+                  href={item.downloadUrl || '#'}
+                  download={item.fileName}
                   onClick={(e) => {
-                    e.preventDefault();
-                    alert(`Simulating secure download of file: ${item.fileName} (${item.fileSize})`);
+                    if (!item.downloadUrl || item.downloadUrl === '#') {
+                      e.preventDefault();
+                      alert(`Downloading sample file: ${item.fileName} (${item.fileSize})`);
+                    }
                   }}
                   className="p-1.5 hover:bg-slate-200 rounded text-school-navy transition-colors shrink-0"
                   title="Download File"
@@ -426,41 +434,34 @@ export const CourseEditorView: React.FC = () => {
                 />
               </div>
 
-              {/* Mock File Attachment Input */}
-              <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-lg space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-school-navy flex items-center gap-1.5">
-                    <Paperclip className="w-3.5 h-3.5 text-school-academic" />
-                    Lecture Handout File (PDF / DOCX)
-                  </span>
-                  <span className="text-[10px] text-slate-500">Max size 25MB</span>
-                </div>
+              {/* Real Device File Upload for Course Material */}
+              <div className="space-y-2">
+                <DeviceFileUpload
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip,image/*"
+                  maxSizeMB={25}
+                  label="Upload Topic Handout / PDF from Device"
+                  labelBn="কম্পিউটার বা মোবাইল থেকে হ্যান্ডআউট ফাইল আপলোড করুন"
+                  onFileSelect={(data) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      fileName: data.name,
+                      fileSize: data.size,
+                      fileType: data.type,
+                      downloadUrl: data.dataUrl,
+                    }));
+                  }}
+                />
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] text-slate-600 mb-0.5">Attached File Name</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Chapter4_Notes.pdf"
-                      value={formData.fileName}
-                      onChange={(e) => setFormData({ ...formData, fileName: e.target.value })}
-                      className="w-full px-2.5 py-1.5 border rounded text-xs bg-white"
-                    />
+                {formData.fileName && (
+                  <div className="p-2.5 bg-emerald-50 rounded border border-emerald-200 flex items-center justify-between">
+                    <span className="font-semibold text-emerald-900 truncate">
+                      Selected: {formData.fileName} ({formData.fileSize})
+                    </span>
+                    <span className="text-[10px] text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 font-mono">
+                      Ready
+                    </span>
                   </div>
-                  <div>
-                    <label className="block text-[10px] text-slate-600 mb-0.5">File Size</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 2.4 MB"
-                      value={formData.fileSize}
-                      onChange={(e) => setFormData({ ...formData, fileSize: e.target.value })}
-                      className="w-full px-2.5 py-1.5 border rounded text-xs bg-white"
-                    />
-                  </div>
-                </div>
-                <p className="text-[10px] text-slate-500 italic">
-                  Note: In production with Supabase Storage configured, this connects directly to the school documents bucket.
-                </p>
+                )}
               </div>
 
               <div className="pt-3 border-t flex justify-end gap-2.5">

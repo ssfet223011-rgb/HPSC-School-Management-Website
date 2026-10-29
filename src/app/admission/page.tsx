@@ -7,8 +7,9 @@ import { useLanguage } from '@/lib/localization/LanguageContext';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 import { 
   GraduationCap, CheckCircle2, Clock, Search, FileText, 
-  Printer, AlertCircle, ArrowRight, UserCheck 
+  Printer, AlertCircle, ArrowRight, UserCheck, Camera 
 } from 'lucide-react';
+import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
 
 export default function AdmissionPage() {
   const { language } = useLanguage();
@@ -29,6 +30,7 @@ export default function AdmissionPage() {
     guardianEmail: '',
     address: '',
     previousSchool: '',
+    photoUrl: '',
     agreed: false,
   });
 
@@ -323,6 +325,22 @@ export default function AdmissionPage() {
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full text-xs p-2.5 rounded border border-school-border focus:ring-2 focus:ring-school-navy focus:outline-none"
+                  />
+                </div>
+
+                {/* Upload Applicant Passport Photo / Birth Certificate */}
+                <div className="md:col-span-2 pt-2">
+                  <DeviceFileUpload
+                    accept="image/*,application/pdf"
+                    maxSizeMB={8}
+                    label="Upload Applicant Passport Photo / Document from Device"
+                    labelBn="আবেদনকারীর পাসপোর্ট ছবি বা জন্মনিবন্ধন সনদ ফাইল আপলোড করুন"
+                    onFileSelect={(data) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        photoUrl: data.dataUrl,
+                      }));
+                    }}
                   />
                 </div>
               </div>

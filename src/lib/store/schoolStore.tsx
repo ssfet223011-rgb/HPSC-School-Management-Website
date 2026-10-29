@@ -5,7 +5,7 @@ import {
   UserProfile, UserRole, StudentRecord, TeacherStaff, AdmissionApplication, 
   DailyAttendanceSession, Examination, StudentResultReport, FeeInvoice, FeePayment, 
   NoticeItem, SchoolEvent, RoutineItem, LibraryBook, LibraryLoan, AuditLogItem, 
-  ClassItem, SectionItem, SubjectItem, CourseMaterial, AuthAccount 
+  ClassItem, SectionItem, SubjectItem, CourseMaterial, AuthAccount, GalleryPhoto, SchoolBrandingAssets 
 } from '@/types';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 
@@ -194,6 +194,75 @@ const INITIAL_COURSE_MATERIALS: CourseMaterial[] = [
     createdAt: '2026-10-15',
   }
 ];
+
+const INITIAL_GALLERY_PHOTOS: GalleryPhoto[] = [
+  {
+    id: 'gal-1',
+    titleEn: 'Main Campus Entrance Gate & Boundary Signboard',
+    titleBn: 'স্কুল ক্যাম্পাস ও প্রধান প্রবেশ তোরণ',
+    category: 'Campus',
+    image: '/assets/campus-main.jpg',
+    caption: 'Official entrance of Halishahar Public School and College',
+    uploadedBy: 'Administration',
+    uploadedAt: '2026-10-25',
+  },
+  {
+    id: 'gal-2',
+    titleEn: 'Academic Building & Classrooms Architecture',
+    titleBn: 'একাডেমিক ভবন ও শ্রেণিকক্ষ অবকাঠামো',
+    category: 'Campus',
+    image: '/assets/campus-banner.jpg',
+    caption: 'Multistory academic block and spacious learning classrooms',
+    uploadedBy: 'Administration',
+    uploadedAt: '2026-10-24',
+  },
+  {
+    id: 'gal-3',
+    titleEn: 'Annual Sports Day & Physical Education Program',
+    titleBn: 'বার্ষিক ক্রীড়া ও শরীরচর্চা প্রতিযোগিতা',
+    category: 'Events',
+    image: '/assets/campus-main.jpg',
+    caption: 'Annual sprint competitions and athletics meet',
+    uploadedBy: 'Sports Dept',
+    uploadedAt: '2026-10-20',
+  },
+  {
+    id: 'gal-4',
+    titleEn: 'Secondary Science Fair & Practical Demonstrations',
+    titleBn: 'বিজ্ঞান মেলা ও ব্যবহারিক প্রদর্শনী',
+    category: 'Academic',
+    image: '/assets/campus-banner.jpg',
+    caption: 'Student science experiments and robotic models',
+    uploadedBy: 'Science Club',
+    uploadedAt: '2026-10-18',
+  },
+  {
+    id: 'gal-5',
+    titleEn: 'ICT Computer Lab & Multimedia Education',
+    titleBn: 'আইসিটি কম্পিউটার ল্যাব ও ডিজিটাল শিক্ষা',
+    category: 'Academic',
+    image: '/assets/campus-main.jpg',
+    caption: 'Computer workstation lab for digital skill development',
+    uploadedBy: 'ICT Dept',
+    uploadedAt: '2026-10-15',
+  },
+  {
+    id: 'gal-6',
+    titleEn: 'Guardian Assembly & Community Outreach Program',
+    titleBn: 'অভিভাবক সমাবেশ ও সাংস্কৃতিক অনুষ্ঠান',
+    category: 'Events',
+    image: '/assets/campus-banner.jpg',
+    caption: 'Parent-teacher conferences and academic consultation meet',
+    uploadedBy: 'Academic Council',
+    uploadedAt: '2026-10-12',
+  },
+];
+
+const INITIAL_BRANDING_ASSETS: SchoolBrandingAssets = {
+  logoUrl: SCHOOL_CONFIG.branding.logoUrl,
+  campusMainUrl: SCHOOL_CONFIG.branding.campusMainUrl,
+  campusBannerUrl: SCHOOL_CONFIG.branding.campusBannerUrl,
+};
 
 const INITIAL_STUDENTS: StudentRecord[] = [
   {
@@ -630,6 +699,15 @@ interface SchoolStoreType {
   addCourseMaterial: (material: Omit<CourseMaterial, 'id' | 'createdAt'>) => void;
   updateCourseMaterial: (id: string, data: Partial<CourseMaterial>) => void;
   deleteCourseMaterial: (id: string) => void;
+
+  // Media, Photos & File Assets (Device Uploads)
+  galleryPhotos: GalleryPhoto[];
+  addGalleryPhoto: (photo: Omit<GalleryPhoto, 'id'>) => void;
+  updateGalleryPhoto: (id: string, data: Partial<GalleryPhoto>) => void;
+  deleteGalleryPhoto: (id: string) => void;
+
+  brandingAssets: SchoolBrandingAssets;
+  updateBrandingAsset: (key: keyof SchoolBrandingAssets, value: string) => void;
 }
 
 const SchoolStoreContext = createContext<SchoolStoreType | undefined>(undefined);
@@ -660,6 +738,8 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [libraryBooks, setLibraryBooks] = useState<LibraryBook[]>(INITIAL_LIBRARY_BOOKS);
   const [authAccounts, setAuthAccounts] = useState<AuthAccount[]>(INITIAL_AUTH_ACCOUNTS);
   const [courseMaterials, setCourseMaterials] = useState<CourseMaterial[]>(INITIAL_COURSE_MATERIALS);
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>(INITIAL_GALLERY_PHOTOS);
+  const [brandingAssets, setBrandingAssets] = useState<SchoolBrandingAssets>(INITIAL_BRANDING_ASSETS);
 
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([
     {
@@ -692,6 +772,12 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       const savedMaterials = localStorage.getItem('hpsc_course_materials');
       if (savedMaterials) setCourseMaterials(JSON.parse(savedMaterials));
+
+      const savedGallery = localStorage.getItem('hpsc_gallery_photos');
+      if (savedGallery) setGalleryPhotos(JSON.parse(savedGallery));
+
+      const savedBranding = localStorage.getItem('hpsc_branding_assets');
+      if (savedBranding) setBrandingAssets(JSON.parse(savedBranding));
 
       const savedUser = localStorage.getItem('hpsc_current_user');
       if (savedUser) setCurrentUser(JSON.parse(savedUser));
@@ -1131,6 +1217,49 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     addAuditLog('MARKS_ENTERED', `Calculated and published result for student ${st.nameEn} (${st.studentId})`);
   };
 
+  // Gallery Photos (Device Uploads)
+  const addGalleryPhoto = (photo: Omit<GalleryPhoto, 'id'>) => {
+    const newP: GalleryPhoto = {
+      ...photo,
+      id: `gal-${Date.now()}`,
+      uploadedAt: photo.uploadedAt || new Date().toISOString().split('T')[0],
+    };
+    setGalleryPhotos(prev => {
+      const updated = [newP, ...prev];
+      try { localStorage.setItem('hpsc_gallery_photos', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    addAuditLog('GALLERY_UPLOAD', `Uploaded new photo from device: ${photo.titleEn}`);
+  };
+
+  const updateGalleryPhoto = (id: string, data: Partial<GalleryPhoto>) => {
+    setGalleryPhotos(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, ...data } : p);
+      try { localStorage.setItem('hpsc_gallery_photos', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    addAuditLog('GALLERY_UPDATE', `Updated photo: ${id}`);
+  };
+
+  const deleteGalleryPhoto = (id: string) => {
+    setGalleryPhotos(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      try { localStorage.setItem('hpsc_gallery_photos', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    addAuditLog('GALLERY_DELETE', `Deleted photo: ${id}`);
+  };
+
+  // School Branding Assets (Logo, Campus Main, Campus Banner)
+  const updateBrandingAsset = (key: keyof SchoolBrandingAssets, value: string) => {
+    setBrandingAssets(prev => {
+      const updated = { ...prev, [key]: value };
+      try { localStorage.setItem('hpsc_branding_assets', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    addAuditLog('BRANDING_UPDATE', `Updated branding image: ${key} from device`);
+  };
+
   return (
     <SchoolStoreContext.Provider value={{
       currentUser,
@@ -1153,6 +1282,8 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       auditLogs,
       authAccounts,
       courseMaterials,
+      galleryPhotos,
+      brandingAssets,
       addStudent,
       updateStudent,
       deleteStudent,
@@ -1173,6 +1304,10 @@ export const SchoolStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       addCourseMaterial,
       updateCourseMaterial,
       deleteCourseMaterial,
+      addGalleryPhoto,
+      updateGalleryPhoto,
+      deleteGalleryPhoto,
+      updateBrandingAsset,
     }}>
       {children}
     </SchoolStoreContext.Provider>

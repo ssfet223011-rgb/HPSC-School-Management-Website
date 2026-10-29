@@ -202,13 +202,19 @@ export const StudentPortalView: React.FC = () => {
                   By: <strong className="text-school-navy">{mat.uploadedBy}</strong>
                 </span>
 
-                <button
-                  onClick={() => alert(`Starting download: ${mat.fileName} (${mat.fileSize})`)}
+                <a
+                  href={mat.downloadUrl || '#'}
+                  download={mat.fileName}
+                  onClick={(e) => {
+                    if (!mat.downloadUrl || mat.downloadUrl === '#') {
+                      alert(`Downloading: ${mat.fileName} (${mat.fileSize})`);
+                    }
+                  }}
                   className="inline-flex items-center gap-1.5 bg-school-navy hover:bg-school-academic text-white px-2.5 py-1 rounded text-[11px] font-bold shadow-sm transition-colors"
                 >
                   <Download className="w-3.5 h-3.5 text-school-gold" />
                   <span>Download ({mat.fileSize})</span>
-                </button>
+                </a>
               </div>
             </div>
           ))}

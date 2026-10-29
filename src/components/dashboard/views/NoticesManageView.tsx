@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useSchoolStore } from '@/lib/store/schoolStore';
-import { Megaphone, Plus, Trash2, Edit3, X, CheckCircle, Calendar } from 'lucide-react';
+import { Megaphone, Plus, Trash2, Edit3, X, CheckCircle, Calendar, FileText, Download, Paperclip } from 'lucide-react';
 import { NoticeItem } from '@/types';
+import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
 
 export const NoticesManageView: React.FC = () => {
   const { notices, addNotice, deleteNotice } = useSchoolStore();
@@ -17,6 +18,8 @@ export const NoticesManageView: React.FC = () => {
     category: 'academic',
     priority: 'normal',
     isPublished: true,
+    attachmentName: '',
+    attachmentUrl: '',
   });
 
   const handleAddSubmit = (e: React.FormEvent) => {
@@ -35,9 +38,22 @@ export const NoticesManageView: React.FC = () => {
       priority: newNotice.priority as any,
       isPublished: true,
       publishDate: new Date().toISOString().split('T')[0],
+      attachmentName: newNotice.attachmentName || undefined,
+      attachmentUrl: newNotice.attachmentUrl || undefined,
     });
 
     setShowAddModal(false);
+    setNewNotice({
+      titleEn: '',
+      titleBn: '',
+      contentEn: '',
+      contentBn: '',
+      category: 'academic',
+      priority: 'normal',
+      isPublished: true,
+      attachmentName: '',
+      attachmentUrl: '',
+    });
   };
 
   return (
@@ -71,6 +87,7 @@ export const NoticesManageView: React.FC = () => {
               <tr>
                 <th className="py-2.5 px-3">Title (English & Bengali)</th>
                 <th className="py-2.5 px-3">Category</th>
+                <th className="py-2.5 px-3">Attachment File</th>
                 <th className="py-2.5 px-3">Priority</th>
                 <th className="py-2.5 px-3">Date</th>
                 <th className="py-2.5 px-3 text-center">Status</th>
@@ -88,6 +105,24 @@ export const NoticesManageView: React.FC = () => {
                     <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded uppercase text-[10px] font-bold">
                       {n.category}
                     </span>
+                  </td>
+                  <td className="py-2.5 px-3">
+                    {n.attachmentUrl || n.attachmentName ? (
+                      <a
+                        href={n.attachmentUrl || '#'}
+                        download={n.attachmentName || 'notice.pdf'}
+                        onClick={(e) => {
+                          if (!n.attachmentUrl) alert(`Downloading official notice: ${n.attachmentName}`);
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-school-academic bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-school-academic" />
+                        <span className="truncate max-w-[120px]">{n.attachmentName || 'Download Circular'}</span>
+                        <Download className="w-3 h-3 text-slate-500" />
+                      </a>
+                    ) : (
+                      <span className="text-slate-400 text-[10px] italic">None</span>
+                    )}
                   </td>
                   <td className="py-2.5 px-3">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
@@ -212,6 +247,34 @@ export const NoticesManageView: React.FC = () => {
                   onChange={(e) => setNewNotice({ ...newNotice, contentBn: e.target.value })}
                   className="w-full p-2 rounded border font-bengali"
                 />
+              </div>
+
+              {/* Device File Upload for Notice Attachment / PDF */}
+              <div className="pt-2">
+                <DeviceFileUpload
+                  accept=".pdf,.doc,.docx,image/*"
+                  maxSizeMB={15}
+                  label="Upload Official Circular PDF / Attachment from Device"
+                  labelBn="কম্পিউটার বা মোবাইল থেকে নোটিশের পিডিএফ বা সার্কুলার ফাইল আপলোড করুন"
+                  onFileSelect={(data) => {
+                    setNewNotice(prev => ({
+                      ...prev,
+                      attachmentName: data.name,
+                      attachmentUrl: data.dataUrl,
+                    }));
+                  }}
+                />
+
+                {newNotice.attachmentName && (
+                  <div className="mt-2 p-2 bg-emerald-50 rounded border border-emerald-200 text-xs flex items-center justify-between">
+                    <span className="font-semibold text-emerald-800">
+                      Attached: {newNotice.attachmentName}
+                    </span>
+                    <span className="text-[10px] text-emerald-600 bg-white px-2 py-0.5 rounded border border-emerald-200">
+                      Attached
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t">

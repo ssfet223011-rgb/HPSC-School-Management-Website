@@ -9,10 +9,12 @@ import {
   BookMarked, Phone, Book
 } from 'lucide-react';
 import { useLanguage } from '@/lib/localization/LanguageContext';
+import { useSchoolStore } from '@/lib/store/schoolStore';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 
 export const LeftMenuColumn: React.FC = () => {
   const { language } = useLanguage();
+  const { brandingAssets } = useSchoolStore();
 
   const menuItems = [
     { href: '/', labelBn: 'Home', labelEn: 'Home', icon: Home },
@@ -59,9 +61,10 @@ export const LeftMenuColumn: React.FC = () => {
       <div className="rounded-lg overflow-hidden border border-school-border shadow-academic bg-[#082E50] text-white group">
         <div className="relative h-44 w-full">
           <Image
-            src={SCHOOL_CONFIG.branding.campusMainUrl}
+            src={brandingAssets.campusMainUrl}
             alt="School Campus Building"
             fill
+            unoptimized
             className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
           />
         </div>

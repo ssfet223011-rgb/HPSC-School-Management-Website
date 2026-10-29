@@ -2,10 +2,14 @@
 
 import React, { useState } from 'react';
 import { SCHOOL_CONFIG } from '@/config/school.config';
-import { Settings, Save, CheckCircle2, Shield, Lock } from 'lucide-react';
+import { useSchoolStore } from '@/lib/store/schoolStore';
+import { Settings, Save, CheckCircle2, Shield, Lock, Image as ImageIcon, Upload } from 'lucide-react';
+import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
 
 export const SettingsView: React.FC = () => {
+  const { brandingAssets, updateBrandingAsset } = useSchoolStore();
   const [saved, setSaved] = useState(false);
+  const [assetMsg, setAssetMsg] = useState<string | null>(null);
   const [settings, setSettings] = useState({
     nameEn: SCHOOL_CONFIG.identity.nameEn,
     nameBn: SCHOOL_CONFIG.identity.nameBn,
@@ -218,6 +222,102 @@ export const SettingsView: React.FC = () => {
                 value={settings.quoteBn}
                 onChange={(e) => setSettings({ ...settings, quoteBn: e.target.value })}
                 className="w-full p-2.5 rounded border font-bengali"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Branding Assets & Image Uploads from Device */}
+        <div>
+          <div className="flex items-center justify-between border-b pb-2 mb-3">
+            <div>
+              <h3 className="text-xs font-bold text-school-navy uppercase tracking-wider">
+                Branding Images & Photos (ডিভাইস থেকে ছবি আপলোড)
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                Upload official school logo, main campus gate photo, and banner images directly from your computer or phone.
+              </p>
+            </div>
+            {assetMsg && (
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
+                {assetMsg}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 1. Official Logo */}
+            <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-3">
+              <span className="text-xs font-bold text-school-navy block">
+                Official School Logo (লোগো)
+              </span>
+              <div className="w-20 h-20 mx-auto relative bg-white rounded border p-1 shadow-sm">
+                <img
+                  src={brandingAssets.logoUrl}
+                  alt="School Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <DeviceFileUpload
+                compact
+                accept="image/*"
+                buttonText="Upload New Logo"
+                onFileSelect={(data) => {
+                  updateBrandingAsset('logoUrl', data.dataUrl);
+                  setAssetMsg('School logo updated from device!');
+                  setTimeout(() => setAssetMsg(null), 3000);
+                }}
+                className="w-full text-center"
+              />
+            </div>
+
+            {/* 2. Main Campus Entrance */}
+            <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-3">
+              <span className="text-xs font-bold text-school-navy block">
+                Main Campus Photo (ক্যাম্পাস)
+              </span>
+              <div className="w-full h-24 relative bg-white rounded border overflow-hidden shadow-sm">
+                <img
+                  src={brandingAssets.campusMainUrl}
+                  alt="Campus Main"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <DeviceFileUpload
+                compact
+                accept="image/*"
+                buttonText="Upload Campus Photo"
+                onFileSelect={(data) => {
+                  updateBrandingAsset('campusMainUrl', data.dataUrl);
+                  setAssetMsg('Campus photo updated from device!');
+                  setTimeout(() => setAssetMsg(null), 3000);
+                }}
+                className="w-full text-center"
+              />
+            </div>
+
+            {/* 3. Hero Carousel Banner */}
+            <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-3">
+              <span className="text-xs font-bold text-school-navy block">
+                Campus Banner Photo (ব্যানার)
+              </span>
+              <div className="w-full h-24 relative bg-white rounded border overflow-hidden shadow-sm">
+                <img
+                  src={brandingAssets.campusBannerUrl}
+                  alt="Campus Banner"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <DeviceFileUpload
+                compact
+                accept="image/*"
+                buttonText="Upload Banner Photo"
+                onFileSelect={(data) => {
+                  updateBrandingAsset('campusBannerUrl', data.dataUrl);
+                  setAssetMsg('Hero banner updated from device!');
+                  setTimeout(() => setAssetMsg(null), 3000);
+                }}
+                className="w-full text-center"
               />
             </div>
           </div>

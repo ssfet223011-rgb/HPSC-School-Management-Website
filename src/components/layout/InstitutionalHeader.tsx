@@ -5,9 +5,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 import { useLanguage } from '@/lib/localization/LanguageContext';
+import { useSchoolStore } from '@/lib/store/schoolStore';
 
 export const InstitutionalHeader: React.FC = () => {
   const { language } = useLanguage();
+  const { brandingAssets } = useSchoolStore();
 
   return (
     <header className="bg-white border-b border-school-border relative shadow-sm no-print">
@@ -18,9 +20,10 @@ export const InstitutionalHeader: React.FC = () => {
           <Link href="/" className="relative flex-shrink-0 group">
             <div className="w-20 h-20 sm:w-24 sm:h-24 relative p-1 bg-white rounded-lg border border-school-border/80 shadow-academic group-hover:border-school-gold transition-all">
               <Image
-                src={SCHOOL_CONFIG.branding.logoUrl}
+                src={brandingAssets.logoUrl}
                 alt={SCHOOL_CONFIG.identity.nameEn}
                 fill
+                unoptimized
                 className="object-contain p-0.5"
                 priority
               />
@@ -56,9 +59,10 @@ export const InstitutionalHeader: React.FC = () => {
         {/* Right: Campus Banner / Image Area */}
         <div className="hidden lg:block relative w-80 h-24 rounded-lg overflow-hidden border border-school-border shadow-academic group">
           <Image
-            src={SCHOOL_CONFIG.branding.campusMainUrl}
+            src={brandingAssets.campusMainUrl}
             alt="School Campus Banner"
             fill
+            unoptimized
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-school-navy/80 via-transparent to-transparent flex items-end p-2">

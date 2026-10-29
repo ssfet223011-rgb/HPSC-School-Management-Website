@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useSchoolStore } from '@/lib/store/schoolStore';
-import { UserCheck, Plus, Search, Mail, Phone, Trash2, X } from 'lucide-react';
+import { UserCheck, Plus, Search, Mail, Phone, Trash2, X, Camera } from 'lucide-react';
 import { TeacherStaff } from '@/types';
+import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
 
 export const TeachersView: React.FC = () => {
   const { staff, addTeacher } = useSchoolStore();
@@ -19,6 +20,7 @@ export const TeachersView: React.FC = () => {
     phone: '',
     email: '',
     status: 'active',
+    photoUrl: '',
   });
 
   const filtered = staff.filter(s => 
@@ -45,11 +47,23 @@ export const TeachersView: React.FC = () => {
       email: newStaff.email || `${newStaff.nameEn?.toLowerCase().replace(/\s+/g, '')}@hpscctg.edu.bd`,
       joiningDate: new Date().toISOString().split('T')[0],
       status: 'active',
+      photoUrl: newStaff.photoUrl || undefined,
       assignedClasses: ['Class 8', 'Class 9'],
       assignedSubjects: ['General Mathematics'],
     });
 
     setShowAddModal(false);
+    setNewStaff({
+      nameEn: '',
+      nameBn: '',
+      designation: 'Assistant Teacher',
+      department: 'General Academic',
+      qualification: 'M.A / M.Sc, B.Ed',
+      phone: '',
+      email: '',
+      status: 'active',
+      photoUrl: '',
+    });
   };
 
   return (
@@ -94,8 +108,19 @@ export const TeachersView: React.FC = () => {
                 <tr key={st.id} className="hover:bg-slate-50">
                   <td className="py-2.5 px-3 font-mono font-bold text-school-navy">{st.employeeId}</td>
                   <td className="py-2.5 px-3 font-semibold text-school-navy">
-                    <div>{st.nameEn}</div>
-                    <div className="text-[11px] text-slate-500 font-bengali">{st.nameBn}</div>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-school-cream border border-school-border flex items-center justify-center shrink-0">
+                        {st.photoUrl ? (
+                          <img src={st.photoUrl} alt={st.nameEn} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xs font-bold text-school-navy">{st.nameEn.charAt(0)}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div>{st.nameEn}</div>
+                        <div className="text-[11px] text-slate-500 font-bengali">{st.nameBn}</div>
+                      </div>
+                    </div>
                   </td>
                   <td className="py-2.5 px-3">
                     <span className="font-semibold text-amber-900 block">{st.designation}</span>
@@ -183,6 +208,22 @@ export const TeachersView: React.FC = () => {
                   value={newStaff.phone}
                   onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value })}
                   className="w-full p-2 rounded border font-mono"
+                />
+              </div>
+
+              {/* Teacher Photo Upload from Device */}
+              <div className="pt-2">
+                <DeviceFileUpload
+                  accept="image/*"
+                  maxSizeMB={5}
+                  label="Upload Teacher Profile Photo from Device"
+                  labelBn="কম্পিউটার বা মোবাইল থেকে শিক্ষকের ছবি আপলোড করুন"
+                  onFileSelect={(data) => {
+                    setNewStaff(prev => ({
+                      ...prev,
+                      photoUrl: data.dataUrl,
+                    }));
+                  }}
                 />
               </div>
 

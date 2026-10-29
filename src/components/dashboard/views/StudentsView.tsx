@@ -6,9 +6,10 @@ import { useSchoolStore } from '@/lib/store/schoolStore';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 import { 
   Users, Plus, Search, Filter, Download, Printer, 
-  Trash2, Edit3, Eye, CheckCircle, X, CreditCard 
+  Trash2, Edit3, Eye, CheckCircle, X, CreditCard, Camera 
 } from 'lucide-react';
 import { StudentRecord } from '@/types';
+import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
 
 export const StudentsView: React.FC = () => {
   const { students, classes, sections, addStudent, updateStudent, deleteStudent } = useSchoolStore();
@@ -36,6 +37,7 @@ export const StudentsView: React.FC = () => {
     emergencyContact: '',
     address: 'Halishahar, Chattogram',
     status: 'active',
+    photoUrl: '',
   });
 
   const filteredStudents = students.filter(s => {
@@ -79,9 +81,28 @@ export const StudentsView: React.FC = () => {
       emergencyContact: newStudent.emergencyContact || newStudent.primaryPhone!,
       address: newStudent.address || 'Halishahar, Chattogram',
       status: 'active',
+      photoUrl: newStudent.photoUrl || undefined,
     });
 
     setShowAddModal(false);
+    setNewStudent({
+      nameEn: '',
+      nameBn: '',
+      gender: 'Male',
+      dob: '2012-05-10',
+      bloodGroup: 'B+',
+      className: 'Class 8',
+      sectionName: 'Section A (Padma)',
+      rollNumber: 1,
+      academicYear: '2026',
+      fatherName: '',
+      motherName: '',
+      primaryPhone: '',
+      emergencyContact: '',
+      address: 'Halishahar, Chattogram',
+      status: 'active',
+      photoUrl: '',
+    });
   };
 
   const exportCSV = () => {
@@ -335,6 +356,22 @@ export const StudentsView: React.FC = () => {
                     className="w-full p-2 rounded border border-school-border"
                   />
                 </div>
+
+                {/* Device File Upload for Student Photo */}
+                <div className="col-span-2 pt-2">
+                  <DeviceFileUpload
+                    accept="image/*"
+                    maxSizeMB={5}
+                    label="Upload Student Passport Photo from Device"
+                    labelBn="কম্পিউটার বা মোবাইল থেকে শিক্ষার্থীর ছবি আপলোড করুন"
+                    onFileSelect={(data) => {
+                      setNewStudent(prev => ({
+                        ...prev,
+                        photoUrl: data.dataUrl,
+                      }));
+                    }}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t">
@@ -368,18 +405,28 @@ export const StudentsView: React.FC = () => {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="border-b-2 border-school-navy pb-3 flex items-center gap-3">
-              <div className="w-12 h-12 relative bg-white rounded p-1 border">
-                <Image
-                  src={SCHOOL_CONFIG.branding.logoUrl}
-                  alt="School Logo"
-                  fill
-                  className="object-contain"
-                />
+            <div className="border-b-2 border-school-navy pb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 relative bg-white rounded p-1 border">
+                  <Image
+                    src={SCHOOL_CONFIG.branding.logoUrl}
+                    alt="School Logo"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-school-navy">Official Student Profile</h3>
+                  <p className="text-xs text-slate-500 font-mono">{SCHOOL_CONFIG.identity.nameEn}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-bold text-school-navy">Official Student Profile</h3>
-                <p className="text-xs text-slate-500 font-mono">{SCHOOL_CONFIG.identity.nameEn}</p>
+
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-slate-100 border-2 border-school-gold flex items-center justify-center shrink-0">
+                {viewingStudent.photoUrl ? (
+                  <img src={viewingStudent.photoUrl} alt={viewingStudent.nameEn} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-lg font-bold text-school-navy">{viewingStudent.nameEn.charAt(0)}</span>
+                )}
               </div>
             </div>
 
@@ -454,8 +501,16 @@ export const StudentsView: React.FC = () => {
 
               {/* Student Photo & Details */}
               <div className="p-4 space-y-2">
-                <div className="w-20 h-20 rounded-full bg-slate-200 border-2 border-school-gold mx-auto flex items-center justify-center text-xl font-bold text-school-navy">
-                  {idCardStudent.nameEn.charAt(0)}
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-200 border-2 border-school-gold mx-auto flex items-center justify-center text-xl font-bold text-school-navy shadow-sm">
+                  {idCardStudent.photoUrl ? (
+                    <img
+                      src={idCardStudent.photoUrl}
+                      alt={idCardStudent.nameEn}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    idCardStudent.nameEn.charAt(0)
+                  )}
                 </div>
 
                 <h3 className="text-sm font-extrabold text-school-navy leading-tight">
