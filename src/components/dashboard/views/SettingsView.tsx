@@ -23,6 +23,92 @@ export const SettingsView: React.FC = () => {
   const [testFirebaseStatus, setTestFirebaseStatus] = useState<string | null>(null);
   const [isTestingFirebase, setIsTestingFirebase] = useState(false);
 
+  const [firebaseInputs, setFirebaseInputs] = useState({
+    apiKey: '',
+    authDomain: '',
+    projectId: '',
+    storageBucket: '',
+    messagingSenderId: '',
+    appId: '',
+  });
+  const [rawFirebaseConfig, setRawFirebaseConfig] = useState('');
+  const [firebaseSaveMsg, setFirebaseSaveMsg] = useState<string | null>(null);
+  const [isSavingFirebase, setIsSavingFirebase] = useState(false);
+
+  // Load saved local Firebase config if present
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('hpsc_firebase_config');
+      if (stored) {
+        setFirebaseInputs(JSON.parse(stored));
+      } else {
+        setFirebaseInputs({
+          apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+          authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+          storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+          messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+          appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
+        });
+      }
+    } catch {}
+  }, []);
+
+  const handleParseRawSnippet = (text: string) => {
+    setRawFirebaseConfig(text);
+    try {
+      const extract = (key: string) => {
+        const match = text.match(new RegExp(`${key}["']?\\s*:\\s*["']([^"']+)["']`));
+        return match ? match[1] : '';
+      };
+      const parsedApiKey = extract('apiKey');
+      const parsedProjectId = extract('projectId');
+      if (parsedApiKey && parsedProjectId) {
+        setFirebaseInputs(prev => ({
+          ...prev,
+          apiKey: parsedApiKey,
+          authDomain: extract('authDomain') || `${parsedProjectId}.firebaseapp.com`,
+          projectId: parsedProjectId,
+          storageBucket: extract('storageBucket') || `${parsedProjectId}.appspot.com`,
+          messagingSenderId: extract('messagingSenderId'),
+          appId: extract('appId'),
+        }));
+      }
+    } catch {}
+  };
+
+  const handleSaveFirebaseConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firebaseInputs.apiKey || !firebaseInputs.projectId) {
+      alert('Please enter at least apiKey and projectId.');
+      return;
+    }
+
+    setIsSavingFirebase(true);
+    setFirebaseSaveMsg(null);
+    try {
+      const res = await fetch('/api/firebase-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(firebaseInputs),
+      });
+      const data = await res.json();
+      localStorage.setItem('hpsc_firebase_config', JSON.stringify(firebaseInputs));
+      setFirebaseSaveMsg('Firebase credentials saved successfully to .env.local and activated!');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err: any) {
+      localStorage.setItem('hpsc_firebase_config', JSON.stringify(firebaseInputs));
+      setFirebaseSaveMsg('Firebase credentials saved to browser storage and activated!');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } finally {
+      setIsSavingFirebase(false);
+    }
+  };
+
   const handleTestDatabase = async () => {
     setIsTestingDb(true);
     setTestDbStatus(null);
@@ -258,6 +344,140 @@ export const SettingsView: React.FC = () => {
                     </li>
                   </ol>
                 </div>
+              </div>
+
+              {/* Interactive Firebase Connection Form */}
+              <div className="bg-white p-4 rounded-lg border-2 border-amber-300 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <div className="flex items-center gap-2">
+                    <Flame className="w-4 h-4 text-amber-600" />
+                    <h4 className="font-bold text-school-navy text-xs">
+                      সরাসরি Firebase Connect করার ফরম (Instant Setup)
+                    </h4>
+                  </div>
+                  <span className="text-[10px] text-slate-500">
+                    এখানে কী বসালে অটোমেটিক প্রজেক্টে যুক্ত হয়ে যাবে
+                  </span>
+                </div>
+
+                {firebaseSaveMsg && (
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-300 rounded text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-fadeIn">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{firebaseSaveMsg}</span>
+                  </div>
+                )}
+
+                {/* Quick Auto-Fill Parser */}
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-semibold text-slate-700">
+                    Quick Auto-Fill: Firebase Console থেকে পাওয়া পুরো <code>firebaseConfig</code> কোডটি এখানে পেস্ট করুন
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={rawFirebaseConfig}
+                    onChange={(e) => handleParseRawSnippet(e.target.value)}
+                    placeholder='যেমন: const firebaseConfig = { apiKey: "AIzaSy...", authDomain: "...", projectId: "..." };'
+                    className="w-full text-[11px] p-2 rounded border border-slate-300 font-mono focus:ring-1 focus:ring-amber-500 bg-amber-50/20"
+                  />
+                  <span className="text-[10px] text-slate-500 block">
+                    (পেস্ট করলেই নিচের ঘরগুলো স্বয়ংক্রিয়ভাবে পূরণ হয়ে যাবে)
+                  </span>
+                </div>
+
+                <form onSubmit={handleSaveFirebaseConfig} className="space-y-3 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="block font-semibold text-school-navy mb-0.5">
+                        API Key (apiKey) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="AIzaSy..."
+                        value={firebaseInputs.apiKey}
+                        onChange={(e) => setFirebaseInputs({ ...firebaseInputs, apiKey: e.target.value })}
+                        className="w-full p-2 rounded border border-slate-300 font-mono text-[11px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-school-navy mb-0.5">
+                        Project ID (projectId) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="halishahar-school-erp"
+                        value={firebaseInputs.projectId}
+                        onChange={(e) => setFirebaseInputs({ ...firebaseInputs, projectId: e.target.value })}
+                        className="w-full p-2 rounded border border-slate-300 font-mono text-[11px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-school-navy mb-0.5">
+                        Auth Domain
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="your-project.firebaseapp.com"
+                        value={firebaseInputs.authDomain}
+                        onChange={(e) => setFirebaseInputs({ ...firebaseInputs, authDomain: e.target.value })}
+                        className="w-full p-2 rounded border border-slate-300 font-mono text-[11px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-school-navy mb-0.5">
+                        Storage Bucket
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="your-project.appspot.com"
+                        value={firebaseInputs.storageBucket}
+                        onChange={(e) => setFirebaseInputs({ ...firebaseInputs, storageBucket: e.target.value })}
+                        className="w-full p-2 rounded border border-slate-300 font-mono text-[11px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-school-navy mb-0.5">
+                        Messaging Sender ID
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="123456789012"
+                        value={firebaseInputs.messagingSenderId}
+                        onChange={(e) => setFirebaseInputs({ ...firebaseInputs, messagingSenderId: e.target.value })}
+                        className="w-full p-2 rounded border border-slate-300 font-mono text-[11px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-school-navy mb-0.5">
+                        App ID
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="1:123456789012:web:abcdef"
+                        value={firebaseInputs.appId}
+                        onChange={(e) => setFirebaseInputs({ ...firebaseInputs, appId: e.target.value })}
+                        className="w-full p-2 rounded border border-slate-300 font-mono text-[11px]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2 border-t">
+                    <button
+                      type="submit"
+                      disabled={isSavingFirebase}
+                      className="inline-flex items-center gap-2 bg-[#D6A545] hover:bg-yellow-400 text-school-navy font-extrabold px-5 py-2 rounded text-xs shadow-academic transition-all"
+                    >
+                      <Flame className="w-4 h-4" />
+                      <span>{isSavingFirebase ? 'কানেক্ট করা হচ্ছে...' : 'Save & Connect Firebase to Website'}</span>
+                    </button>
+                  </div>
+                </form>
               </div>
 
               {/* Copyable Firebase .env.local format */}
