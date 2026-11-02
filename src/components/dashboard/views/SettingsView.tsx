@@ -3,17 +3,25 @@
 import React, { useState } from 'react';
 import { SCHOOL_CONFIG } from '@/config/school.config';
 import { useSchoolStore } from '@/lib/store/schoolStore';
-import { Settings, Save, CheckCircle2, Shield, Lock, Image as ImageIcon, Upload, Database, Server, Key, ExternalLink, Copy, Check } from 'lucide-react';
+import { Settings, Save, CheckCircle2, Shield, Lock, Image as ImageIcon, Upload, Database, Server, Key, ExternalLink, Copy, Check, Flame } from 'lucide-react';
 import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase/client';
+import { isFirebaseConfigured, db as firebaseDb } from '@/lib/firebase/config';
+import { collection, getDocs, limit, query } from 'firebase/firestore';
 
 export const SettingsView: React.FC = () => {
   const { brandingAssets, updateBrandingAsset } = useSchoolStore();
   const [saved, setSaved] = useState(false);
   const [assetMsg, setAssetMsg] = useState<string | null>(null);
   const [copiedEnv, setCopiedEnv] = useState(false);
+  const [copiedFirebaseEnv, setCopiedFirebaseEnv] = useState(false);
+  const [dbTab, setDbTab] = useState<'firebase' | 'supabase'>('firebase');
+  
   const [testDbStatus, setTestDbStatus] = useState<string | null>(null);
   const [isTestingDb, setIsTestingDb] = useState(false);
+
+  const [testFirebaseStatus, setTestFirebaseStatus] = useState<string | null>(null);
+  const [isTestingFirebase, setIsTestingFirebase] = useState(false);
 
   const handleTestDatabase = async () => {
     setIsTestingDb(true);
@@ -33,6 +41,24 @@ export const SettingsView: React.FC = () => {
       setTestDbStatus(`Connection check error: ${err.message}`);
     } finally {
       setIsTestingDb(false);
+    }
+  };
+
+  const handleTestFirebase = async () => {
+    setIsTestingFirebase(true);
+    setTestFirebaseStatus(null);
+    try {
+      if (!isFirebaseConfigured || !firebaseDb) {
+        setTestFirebaseStatus('Firebase Local Mode: Firebase keys not yet placed in .env.local.');
+      } else {
+        const q = query(collection(firebaseDb, 'school_settings'), limit(1));
+        await getDocs(q);
+        setTestFirebaseStatus('Success! Google Firebase Firestore connected successfully.');
+      }
+    } catch (err: any) {
+      setTestFirebaseStatus(`Firebase response: ${err.message}`);
+    } finally {
+      setIsTestingFirebase(false);
     }
   };
 
@@ -95,132 +121,271 @@ export const SettingsView: React.FC = () => {
             </div>
             <div>
               <h3 className="font-bold text-sm tracking-wide">
-                Database Connection & Cloud Integration (ডাটাবেজ কানেকশন)
+                Database Connection & Cloud Integration (ক্লাউড ডাটাবেজ কানেকশন)
               </h3>
               <p className="text-[11px] text-slate-300 font-bengali">
-                Supabase PostgreSQL ও ফাইল স্টোরেজ ক্লাউড সংযোগ
+                Google Firebase Firestore ও Supabase PostgreSQL ডাটাবেজ সংযোগ সেন্টার
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-              isSupabaseConfigured
-                ? 'bg-emerald-500 text-white'
-                : 'bg-amber-400 text-school-navy'
-            }`}>
-              <span className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-white' : 'bg-school-navy animate-ping'}`} />
-              <span>{isSupabaseConfigured ? 'Cloud PostgreSQL Connected' : 'Local Offline Mode Active'}</span>
-            </span>
-
+          {/* Database Provider Tabs */}
+          <div className="flex items-center gap-1.5 bg-black/25 p-1 rounded-lg border border-white/15">
             <button
               type="button"
-              onClick={handleTestDatabase}
-              disabled={isTestingDb}
-              className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded font-semibold border border-white/30 transition-colors"
+              onClick={() => setDbTab('firebase')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-bold transition-all ${
+                dbTab === 'firebase'
+                  ? 'bg-amber-400 text-school-navy shadow'
+                  : 'text-slate-200 hover:text-white'
+              }`}
             >
-              {isTestingDb ? 'Checking...' : 'Test Connection'}
+              <Flame className="w-3.5 h-3.5 text-amber-900" />
+              <span>Google Firebase</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDbTab('supabase')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-bold transition-all ${
+                dbTab === 'supabase'
+                  ? 'bg-emerald-400 text-school-navy shadow'
+                  : 'text-slate-200 hover:text-white'
+              }`}
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-950" />
+              <span>Supabase (PostgreSQL)</span>
             </button>
           </div>
         </div>
 
         <div className="p-5 space-y-4 text-xs">
-          {testDbStatus && (
-            <div className={`p-3 rounded border text-xs font-semibold ${
-              testDbStatus.includes('Success')
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                : 'bg-blue-50 text-blue-900 border-blue-300'
-            }`}>
-              {testDbStatus}
+          {/* TAB 1: GOOGLE FIREBASE */}
+          {dbTab === 'firebase' && (
+            <div className="space-y-4 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-amber-50/60 p-3.5 rounded-lg border border-amber-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center border border-amber-300">
+                    <Flame className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-school-navy block">Firebase Cloud Firestore & Storage</span>
+                    <span className="text-[11px] text-slate-600">
+                      Status:{' '}
+                      <strong className={isFirebaseConfigured ? 'text-emerald-700' : 'text-amber-800'}>
+                        {isFirebaseConfigured ? 'Connected to Firebase Project' : 'Running in Local/Mock Mode'}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleTestFirebase}
+                    disabled={isTestingFirebase}
+                    className="text-xs bg-school-navy hover:bg-school-academic text-white px-3.5 py-1.5 rounded font-bold shadow transition-colors flex items-center gap-1.5"
+                  >
+                    <Flame className="w-3.5 h-3.5 text-school-gold" />
+                    <span>{isTestingFirebase ? 'Testing Firebase...' : 'Test Firebase Connection'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {testFirebaseStatus && (
+                <div className={`p-3 rounded border text-xs font-semibold ${
+                  testFirebaseStatus.includes('Success')
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : 'bg-amber-50 text-amber-900 border-amber-300'
+                }`}>
+                  {testFirebaseStatus}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  <h4 className="font-bold text-school-navy text-xs flex items-center gap-1.5">
+                    <Server className="w-4 h-4 text-school-academic" />
+                    <span>Firebase কনফিগারেশন বিবরণ</span>
+                  </h4>
+                  <div className="space-y-2 text-slate-700">
+                    <div className="flex justify-between border-b pb-1">
+                      <span className="text-slate-500">Database Engine:</span>
+                      <strong className="font-mono text-school-navy">Cloud Firestore (NoSQL)</strong>
+                    </div>
+                    <div className="flex justify-between border-b pb-1">
+                      <span className="text-slate-500">File Storage:</span>
+                      <span className="font-semibold text-emerald-700">Firebase Storage (Files/Photos)</span>
+                    </div>
+                    <div className="flex justify-between border-b pb-1">
+                      <span className="text-slate-500">Configured Project ID:</span>
+                      <span className="font-mono text-[10px] text-slate-600 truncate max-w-[180px]">
+                        {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'Not yet set in .env.local'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Client Code Location:</span>
+                      <span className="font-mono text-xs text-school-academic">src/lib/firebase/config.ts</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 bg-amber-50/70 p-4 rounded-lg border border-amber-200">
+                  <h4 className="font-bold text-school-navy text-xs flex items-center gap-1.5">
+                    <Key className="w-4 h-4 text-amber-600" />
+                    <span>Firebase কানেক্ট করার ৪টি সহজ ধাপ:</span>
+                  </h4>
+                  <ol className="list-decimal list-inside space-y-1.5 text-slate-700 leading-relaxed text-[11px]">
+                    <li>
+                      <strong>Firebase Console-এ যান:</strong>{' '}
+                      <a
+                        href="https://console.firebase.google.com"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-school-academic underline inline-flex items-center gap-0.5 font-bold"
+                      >
+                        console.firebase.google.com <ExternalLink className="w-3 h-3" />
+                      </a>{' '}
+                      এ গিয়ে <em>Add project</em> দিয়ে একটি নতুন প্রজেক্ট তৈরি করুন।
+                    </li>
+                    <li>
+                      <strong>Web App (<code>&lt;/&gt;</code>) যুক্ত করুন:</strong> Project Overview থেকে <em>Web</em> আইকনে ক্লিক করে একটি অ্যাপ রেজিস্টার করুন এবং <code>firebaseConfig</code> কী-গুলো কপি করুন।
+                    </li>
+                    <li>
+                      <strong>Firestore Database চালু করুন:</strong> বাম মেনু থেকে <em>Build &gt; Firestore Database</em> এ গিয়ে <em>Create Database</em> (Start in test mode) সিলেক্ট করে চালু করুন।
+                    </li>
+                    <li>
+                      <strong>.env.local ফাইলে পেস্ট করুন:</strong> নিচের কোড ফরম্যাটে আপনার মানগুলো <code>.env.local</code> এ সেভ করে সার্ভার রিস্টার্ট দিন।
+                    </li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Copyable Firebase .env.local format */}
+              <div className="bg-slate-900 text-slate-200 p-3.5 rounded-lg font-mono text-[11px] space-y-1.5 relative">
+                <div className="flex items-center justify-between text-slate-400 border-b border-slate-700 pb-1 text-[10px]">
+                  <span>Firebase .env.local কনফিগারেশন ফরম্যাট:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+`NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-school.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-school-erp
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-school.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789012
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789012:web:abcdef123456`
+                      );
+                      setCopiedFirebaseEnv(true);
+                      setTimeout(() => setCopiedFirebaseEnv(false), 2500);
+                    }}
+                    className="inline-flex items-center gap-1 hover:text-white transition-colors"
+                  >
+                    {copiedFirebaseEnv ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedFirebaseEnv ? 'Copied!' : 'Copy Firebase Keys'}</span>
+                  </button>
+                </div>
+                <div>NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyYourApiKeyHere...</div>
+                <div>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com</div>
+                <div>NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id</div>
+                <div>NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com</div>
+                <div>NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789012</div>
+                <div>NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789012:web:abcdef123456</div>
+              </div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <h4 className="font-bold text-school-navy text-xs flex items-center gap-1.5">
-                <Server className="w-4 h-4 text-school-academic" />
-                <span>বর্তমান ডাটাবেজ স্ট্যাটাস</span>
-              </h4>
-              <div className="space-y-2 text-slate-700">
-                <div className="flex justify-between border-b pb-1">
-                  <span className="text-slate-500">Database Engine:</span>
-                  <strong className="font-mono text-school-navy">PostgreSQL (Supabase)</strong>
+          {/* TAB 2: SUPABASE POSTGRESQL */}
+          {dbTab === 'supabase' && (
+            <div className="space-y-4 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-emerald-50/60 p-3.5 rounded-lg border border-emerald-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300">
+                    <Database className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-school-navy block">Supabase PostgreSQL & Storage</span>
+                    <span className="text-[11px] text-slate-600">
+                      Status:{' '}
+                      <strong className={isSupabaseConfigured ? 'text-emerald-700' : 'text-amber-800'}>
+                        {isSupabaseConfigured ? 'Connected to Cloud PostgreSQL' : 'Local Offline Mode Active'}
+                      </strong>
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between border-b pb-1">
-                  <span className="text-slate-500">Active Storage:</span>
-                  <span className="font-semibold text-emerald-700">HTML5 LocalStorage + Mock Cache</span>
+
+                <button
+                  type="button"
+                  onClick={handleTestDatabase}
+                  disabled={isTestingDb}
+                  className="text-xs bg-school-navy hover:bg-school-academic text-white px-3.5 py-1.5 rounded font-bold shadow transition-colors"
+                >
+                  {isTestingDb ? 'Checking...' : 'Test Supabase Connection'}
+                </button>
+              </div>
+
+              {testDbStatus && (
+                <div className={`p-3 rounded border text-xs font-semibold ${
+                  testDbStatus.includes('Success')
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : 'bg-blue-50 text-blue-900 border-blue-300'
+                }`}>
+                  {testDbStatus}
                 </div>
-                <div className="flex justify-between border-b pb-1">
-                  <span className="text-slate-500">Configured URL:</span>
-                  <span className="font-mono text-[10px] text-slate-600 truncate max-w-[180px]">
-                    {process.env.NEXT_PUBLIC_SUPABASE_URL || 'Not yet set'}
-                  </span>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  <h4 className="font-bold text-school-navy text-xs flex items-center gap-1.5">
+                    <Server className="w-4 h-4 text-school-academic" />
+                    <span>Supabase বর্তমান স্ট্যাটাস</span>
+                  </h4>
+                  <div className="space-y-2 text-slate-700">
+                    <div className="flex justify-between border-b pb-1">
+                      <span className="text-slate-500">Database Engine:</span>
+                      <strong className="font-mono text-school-navy">PostgreSQL</strong>
+                    </div>
+                    <div className="flex justify-between border-b pb-1">
+                      <span className="text-slate-500">Configured URL:</span>
+                      <span className="font-mono text-[10px] text-slate-600 truncate max-w-[180px]">
+                        {process.env.NEXT_PUBLIC_SUPABASE_URL || 'Not yet set in .env.local'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">SQL Migration File:</span>
+                      <span className="font-mono text-xs text-school-academic">supabase/migrations/...</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">SQL Schema File:</span>
-                  <span className="font-mono text-xs text-school-academic">supabase/migrations/...</span>
+
+                <div className="space-y-2.5 bg-emerald-50/70 p-4 rounded-lg border border-emerald-200">
+                  <h4 className="font-bold text-school-navy text-xs flex items-center gap-1.5">
+                    <Key className="w-4 h-4 text-emerald-700" />
+                    <span>Supabase কানেক্ট করার ধাপ:</span>
+                  </h4>
+                  <ol className="list-decimal list-inside space-y-1.5 text-slate-700 leading-relaxed text-[11px]">
+                    <li>
+                      <strong>Supabase প্রজেক্ট:</strong>{' '}
+                      <a
+                        href="https://supabase.com"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-school-academic underline inline-flex items-center gap-0.5 font-bold"
+                      >
+                        supabase.com <ExternalLink className="w-3 h-3" />
+                      </a>{' '}
+                      এ গিয়ে একাউন্ট ও প্রজেক্ট তৈরি করুন।
+                    </li>
+                    <li>
+                      <strong>API Keys:</strong> <em>Project Settings &gt; API</em> থেকে <code>Project URL</code> এবং <code>anon public key</code> কপি করুন।
+                    </li>
+                    <li>
+                      <strong>SQL Schema:</strong> SQL Editor-এ <code>supabase/migrations/20261029000001_create_school_erp_schema.sql</code> রান করুন।
+                    </li>
+                  </ol>
                 </div>
               </div>
             </div>
-
-            <div className="space-y-2.5 bg-amber-50/70 p-4 rounded-lg border border-amber-200">
-              <h4 className="font-bold text-school-navy text-xs flex items-center gap-1.5">
-                <Key className="w-4 h-4 text-amber-600" />
-                <span>কীভাবে ডাটাবেজ কানেক্ট করবেন (৪টি সহজ ধাপ):</span>
-              </h4>
-              <ol className="list-decimal list-inside space-y-1.5 text-slate-700 leading-relaxed text-[11px]">
-                <li>
-                  <strong>Supabase প্রজেক্ট তৈরি:</strong>{' '}
-                  <a
-                    href="https://supabase.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-school-academic underline inline-flex items-center gap-0.5"
-                  >
-                    supabase.com <ExternalLink className="w-3 h-3" />
-                  </a>{' '}
-                  এ গিয়ে একটি ফ্রি একাউন্ট ও প্রজেক্ট তৈরি করুন।
-                </li>
-                <li>
-                  <strong>API Keys কপি করুন:</strong> প্রজেক্টের <em>Project Settings &gt; API</em> থেকে <code>Project URL</code> এবং <code>anon public key</code> কপি করুন।
-                </li>
-                <li>
-                  <strong>.env.local ফাইলে বসান:</strong> আপনার প্রজেক্টের মূল ফোল্ডারে থাকা <code>.env.local</code> ফাইলে মান দুটি পেস্ট করুন।
-                </li>
-                <li>
-                  <strong>SQL স্কিমা রান করুন:</strong> Supabase ড্যাশবোর্ডের <em>SQL Editor</em>-এ গিয়ে <code>supabase/migrations/20261029000001_create_school_erp_schema.sql</code> ফাইলের কোড রান করে দিন।
-                </li>
-              </ol>
-            </div>
-          </div>
-
-          <div className="bg-slate-900 text-slate-200 p-3.5 rounded-lg font-mono text-[11px] space-y-1.5 relative">
-            <div className="flex items-center justify-between text-slate-400 border-b border-slate-700 pb-1 text-[10px]">
-              <span>.env.local কনফিগারেশন ফরম্যাট:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-`NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_DEFAULT_LOCALE=bn
-NEXT_PUBLIC_TIMEZONE=Asia/Dhaka`
-                  );
-                  setCopiedEnv(true);
-                  setTimeout(() => setCopiedEnv(false), 2500);
-                }}
-                className="inline-flex items-center gap-1 hover:text-white transition-colors"
-              >
-                {copiedEnv ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                <span>{copiedEnv ? 'Copied!' : 'Copy Code'}</span>
-              </button>
-            </div>
-            <div>NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co</div>
-            <div>NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</div>
-            <div className="text-slate-500"># Application defaults</div>
-            <div>NEXT_PUBLIC_APP_URL=http://localhost:3000</div>
-          </div>
+          )}
         </div>
       </div>
 
