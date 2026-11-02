@@ -175,15 +175,17 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Bottom Copyright Bar */}
-      <div className="bg-[#051f36] border-t border-slate-800 text-slate-400 text-xs py-3 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+      <div className="bg-[#051f36] border-t border-slate-800 text-slate-400 text-xs py-3.5 px-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5 text-center md:text-left">
           <p>
             © 2026 {SCHOOL_CONFIG.identity.nameEn}. {t('allRightsReserved')}
           </p>
-          <div className="flex items-center gap-3 text-school-lightGold font-medium">
-            <span>{SCHOOL_CONFIG.branding.taglineEn}</span>
-            <span>•</span>
-            <span>Education | Discipline | Success</span>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span className="text-slate-300">
+              Created by <strong className="font-semibold text-school-lightGold hover:text-white transition-colors">Safwan Sabit Farabi</strong>
+            </span>
+            <span className="text-slate-600">•</span>
+            <span className="text-school-lightGold/90 font-medium">Education | Discipline | Success</span>
           </div>
         </div>
       </div>
