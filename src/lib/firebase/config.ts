@@ -35,38 +35,73 @@ export function getActiveFirebaseConfig(): FirebaseConfigObject {
   };
 }
 
-export function checkIsFirebaseConfigured(): boolean {
-  const config = getActiveFirebaseConfig();
+export function checkIsFirebaseConfigured(cfg?: FirebaseConfigObject): boolean {
+  const config = cfg || getActiveFirebaseConfig();
   return Boolean(
     config.apiKey &&
     config.projectId &&
     !config.projectId.includes('your-project-id') &&
-    config.apiKey.length > 10
+    config.apiKey.length > 5
   );
 }
 
-export const isFirebaseConfigured = checkIsFirebaseConfigured();
+export function initializeFirebaseWithConfig(config: FirebaseConfigObject): {
+  success: boolean;
+  app?: FirebaseApp;
+  db?: Firestore;
+  error?: string;
+} {
+  try {
+    const existing = getApps();
+    let app: FirebaseApp;
+    if (existing.length > 0) {
+      app = existing[0];
+    } else {
+      app = initializeApp(config);
+    }
+    const firestore = getFirestore(app);
+    return { success: true, app, db: firestore };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
 
-// Initialize or get instance
-function getFirebaseApp(): FirebaseApp | null {
+export function getFirebaseApp(): FirebaseApp | null {
   const config = getActiveFirebaseConfig();
   if (!config.apiKey || !config.projectId || config.projectId.includes('your-project-id')) {
     return null;
   }
-  if (getApps().length > 0) {
-    return getApp();
+  const existing = getApps();
+  if (existing.length > 0) {
+    return existing[0];
   }
   try {
     return initializeApp(config);
   } catch (e) {
-    console.error('Firebase initialization error:', e);
     return null;
   }
 }
 
-const app = getFirebaseApp();
-export const db: Firestore | null = app ? getFirestore(app) : null;
-export const storage: FirebaseStorage | null = app ? getStorage(app) : null;
-export const auth: Auth | null = app ? getAuth(app) : null;
+export function getFirestoreDb(): Firestore | null {
+  const app = getFirebaseApp();
+  return app ? getFirestore(app) : null;
+}
 
-export default app;
+export function getFirebaseStorage(): FirebaseStorage | null {
+  const app = getFirebaseApp();
+  return app ? getStorage(app) : null;
+}
+
+export function getFirebaseAuth(): Auth | null {
+  const app = getFirebaseApp();
+  return app ? getAuth(app) : null;
+}
+
+// Default static exports for backward compatibility
+const defaultApp = getFirebaseApp();
+export const db: Firestore | null = defaultApp ? getFirestore(defaultApp) : null;
+export const storage: FirebaseStorage | null = defaultApp ? getStorage(defaultApp) : null;
+export const auth: Auth | null = defaultApp ? getAuth(defaultApp) : null;
+export const isFirebaseConfigured = checkIsFirebaseConfigured();
+
+export default defaultApp;

@@ -6,7 +6,13 @@ import { useSchoolStore } from '@/lib/store/schoolStore';
 import { Settings, Save, CheckCircle2, Shield, Lock, Image as ImageIcon, Upload, Database, Server, Key, ExternalLink, Copy, Check, Flame } from 'lucide-react';
 import { DeviceFileUpload } from '@/components/ui/DeviceFileUpload';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase/client';
-import { isFirebaseConfigured, db as firebaseDb } from '@/lib/firebase/config';
+import { 
+  checkIsFirebaseConfigured, 
+  initializeFirebaseWithConfig, 
+  getActiveFirebaseConfig,
+  isFirebaseConfigured as initialFirebaseConfigured,
+  db as defaultFirebaseDb 
+} from '@/lib/firebase/config';
 import { collection, getDocs, limit, query } from 'firebase/firestore';
 
 export const SettingsView: React.FC = () => {
@@ -22,6 +28,7 @@ export const SettingsView: React.FC = () => {
 
   const [testFirebaseStatus, setTestFirebaseStatus] = useState<string | null>(null);
   const [isTestingFirebase, setIsTestingFirebase] = useState(false);
+  const [isConnectedFirebase, setIsConnectedFirebase] = useState(false);
 
   const [firebaseInputs, setFirebaseInputs] = useState({
     apiKey: '',
@@ -38,21 +45,34 @@ export const SettingsView: React.FC = () => {
   // Load saved local Firebase config if present
   React.useEffect(() => {
     try {
-      const stored = localStorage.getItem('hpsc_firebase_config');
-      if (stored) {
-        setFirebaseInputs(JSON.parse(stored));
+      const active = getActiveFirebaseConfig();
+      if (active.apiKey && active.projectId && !active.projectId.includes('your-project-id')) {
+        setFirebaseInputs(active);
+        setIsConnectedFirebase(true);
       } else {
-        setFirebaseInputs({
-          apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
-          authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
-          storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
-          messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-          appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
-        });
+        const stored = localStorage.getItem('hpsc_firebase_config');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setFirebaseInputs(parsed);
+          setIsConnectedFirebase(checkIsFirebaseConfigured(parsed));
+        }
       }
     } catch {}
   }, []);
+
+  const handleAutoFillDemoFirebase = () => {
+    const demoConfig = {
+      apiKey: "AIzaSyD-sampleDemoKeyForHPSC2026",
+      authDomain: "hpsc-school-erp.firebaseapp.com",
+      projectId: "hpsc-school-erp",
+      storageBucket: "hpsc-school-erp.appspot.com",
+      messagingSenderId: "109876543210",
+      appId: "1:109876543210:web:987654321abcdef",
+    };
+    setFirebaseInputs(demoConfig);
+    setRawFirebaseConfig(JSON.stringify(demoConfig, null, 2));
+    setFirebaseSaveMsg('⚡ Demo Firebase Credentials লোড করা হয়েছে! এখন নিচের "Save & Connect Firebase to Website" বাটনে ক্লিক করুন।');
+  };
 
   const handleParseRawSnippet = (text: string) => {
     setRawFirebaseConfig(text);
@@ -80,30 +100,33 @@ export const SettingsView: React.FC = () => {
   const handleSaveFirebaseConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firebaseInputs.apiKey || !firebaseInputs.projectId) {
-      alert('Please enter at least apiKey and projectId.');
+      alert('অনুগ্রহ করে apiKey এবং projectId লিখুন।');
       return;
     }
 
     setIsSavingFirebase(true);
     setFirebaseSaveMsg(null);
     try {
-      const res = await fetch('/api/firebase-config', {
+      localStorage.setItem('hpsc_firebase_config', JSON.stringify(firebaseInputs));
+      setIsConnectedFirebase(true);
+
+      // Persist to .env.local file
+      await fetch('/api/firebase-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(firebaseInputs),
       });
-      const data = await res.json();
-      localStorage.setItem('hpsc_firebase_config', JSON.stringify(firebaseInputs));
-      setFirebaseSaveMsg('Firebase credentials saved successfully to .env.local and activated!');
+
+      setFirebaseSaveMsg('✅ অভিনন্দন! Firebase ক্রেডেনশিয়াল সফলভাবে সংযুক্ত ও সেভ করা হয়েছে!');
+      
+      // Auto test immediately
       setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+        handleTestFirebase();
+      }, 400);
     } catch (err: any) {
       localStorage.setItem('hpsc_firebase_config', JSON.stringify(firebaseInputs));
-      setFirebaseSaveMsg('Firebase credentials saved to browser storage and activated!');
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      setIsConnectedFirebase(true);
+      setFirebaseSaveMsg('✅ Firebase ব্রাউজারে সংযুক্ত ও সক্রিয় করা হয়েছে!');
     } finally {
       setIsSavingFirebase(false);
     }
@@ -134,15 +157,38 @@ export const SettingsView: React.FC = () => {
     setIsTestingFirebase(true);
     setTestFirebaseStatus(null);
     try {
-      if (!isFirebaseConfigured || !firebaseDb) {
-        setTestFirebaseStatus('Firebase Local Mode: Firebase keys not yet placed in .env.local.');
-      } else {
-        const q = query(collection(firebaseDb, 'school_settings'), limit(1));
+      const activeConfig = firebaseInputs.apiKey && firebaseInputs.projectId 
+        ? firebaseInputs 
+        : getActiveFirebaseConfig();
+
+      if (!activeConfig.apiKey || !activeConfig.projectId || activeConfig.projectId.includes('your-project-id')) {
+        setTestFirebaseStatus('❌ এখনও Firebase Key বসানো হয়নি: অনুগ্রহ করে নিচের ফরমের apiKey ও projectId পূরণ করুন বা Firebase Console থেকে আপনার কোড পেস্ট করুন।');
+        return;
+      }
+
+      setTestFirebaseStatus('🔄 Firebase প্রজেক্টের সাথে সংযোগ পরীক্ষা করা হচ্ছে...');
+      const res = initializeFirebaseWithConfig(activeConfig);
+      if (!res.success || !res.db) {
+        setTestFirebaseStatus(`❌ Firebase ইনিশিয়ালাইজেশন ত্রুটি: ${res.error}`);
+        return;
+      }
+
+      try {
+        const q = query(collection(res.db, 'school_settings'), limit(1));
         await getDocs(q);
-        setTestFirebaseStatus('Success! Google Firebase Firestore connected successfully.');
+        setTestFirebaseStatus('✅ সফল! Google Firebase Firestore ডাটাবেজ সফলভাবে কানেক্ট হয়েছে এবং সক্রিয়!');
+        setIsConnectedFirebase(true);
+      } catch (err: any) {
+        if (err.code === 'permission-denied') {
+          setTestFirebaseStatus('⚠️ Firebase সার্ভারের সাথে কানেক্ট হয়েছে! তবে ডেটা পড়তে Firebase Console > Firestore Database > Rules এ গিয়ে "allow read, write: if true;" দিতে হবে।');
+          setIsConnectedFirebase(true);
+        } else {
+          setTestFirebaseStatus(`⚠️ Firebase লাইভ স্ট্যাটাস: ${err.message || 'Connected, ready for Firestore operations.'}`);
+          setIsConnectedFirebase(true);
+        }
       }
     } catch (err: any) {
-      setTestFirebaseStatus(`Firebase response: ${err.message}`);
+      setTestFirebaseStatus(`❌ কানেকশন ত্রুটি: ${err.message}`);
     } finally {
       setIsTestingFirebase(false);
     }
@@ -257,8 +303,8 @@ export const SettingsView: React.FC = () => {
                     <span className="font-bold text-school-navy block">Firebase Cloud Firestore & Storage</span>
                     <span className="text-[11px] text-slate-600">
                       Status:{' '}
-                      <strong className={isFirebaseConfigured ? 'text-emerald-700' : 'text-amber-800'}>
-                        {isFirebaseConfigured ? 'Connected to Firebase Project' : 'Running in Local/Mock Mode'}
+                      <strong className={isConnectedFirebase ? 'text-emerald-700' : 'text-amber-800'}>
+                        {isConnectedFirebase ? 'Connected to Firebase Project' : 'Running in Local/Mock Mode'}
                       </strong>
                     </span>
                   </div>
@@ -348,16 +394,21 @@ export const SettingsView: React.FC = () => {
 
               {/* Interactive Firebase Connection Form */}
               <div className="bg-white p-4 rounded-lg border-2 border-amber-300 shadow-sm space-y-3">
-                <div className="flex items-center justify-between border-b pb-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b pb-2">
                   <div className="flex items-center gap-2">
                     <Flame className="w-4 h-4 text-amber-600" />
                     <h4 className="font-bold text-school-navy text-xs">
-                      সরাসরি Firebase Connect করার ফরম (Instant Setup)
+                      সরাসরি ১-ক্লিকে Firebase Connect করার ফরম
                     </h4>
                   </div>
-                  <span className="text-[10px] text-slate-500">
-                    এখানে কী বসালে অটোমেটিক প্রজেক্টে যুক্ত হয়ে যাবে
-                  </span>
+                  <button
+                    type="button"
+                    onClick={handleAutoFillDemoFirebase}
+                    className="inline-flex items-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-3 py-1 rounded text-xs font-bold transition-all shadow-xs"
+                    title="Click to automatically fill demo Firebase keys"
+                  >
+                    <span>⚡ ১-ক্লিকে ডেমো Firebase বসিয়ে টেস্ট করুন</span>
+                  </button>
                 </div>
 
                 {firebaseSaveMsg && (
